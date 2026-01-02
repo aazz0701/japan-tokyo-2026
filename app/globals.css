@@ -1,16 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* HMR Trigger */
 
 @layer base {
   :root {
-    --background: 0 0% 7%;  /* #121212 */
+    --background: 0 0% 7%;
+    /* #121212 */
     --foreground: 0 0% 100%;
-    --card: 0 0% 12%;       /* #1E1E1E */
+    --card: 0 0% 12%;
+    /* #1E1E1E */
     --card-foreground: 0 0% 100%;
     --popover: 0 0% 12%;
     --popover-foreground: 0 0% 100%;
-    --primary: 345 100% 59%; /* #FF2E63 Neon Pink */
+    --primary: 345 100% 59%;
+    /* #FF2E63 Neon Pink */
     --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 100%;
@@ -31,6 +35,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
