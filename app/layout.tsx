@@ -1,5 +1,6 @@
 "use client";
 
+import "./globals.css";
 import { Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { UserProvider } from "@/components/UserProvider";

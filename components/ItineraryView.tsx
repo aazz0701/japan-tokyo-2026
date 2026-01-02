@@ -9,6 +9,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { zhTW } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { fetchTripWeather, getWeatherIconLabel, WeatherData } from "@/lib/weather";
 
 interface DayData {
     id: string; // day-1, day-2
@@ -21,6 +22,21 @@ export function ItineraryView() {
     const [days, setDays] = useState<DayData[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState("day-1");
+    const [weather, setWeather] = useState<WeatherData | null>(null);
+
+    useEffect(() => {
+        if (!activeTab || days.length === 0) return;
+
+        // Find current day data
+        const currentDay = days.find(d => d.id === activeTab);
+        if (currentDay) {
+            // Reset weather while fetching
+            setWeather(null);
+            fetchTripWeather(currentDay.dayNumber, currentDay.date).then(data => {
+                setWeather(data);
+            });
+        }
+    }, [activeTab, days]);
 
     useEffect(() => {
         // 1. Check if we should persist offline (Firestore handles this by default if enabled in config, 
@@ -102,14 +118,30 @@ export function ItineraryView() {
                 <div className="px-4 py-4 min-h-[50vh]">
                     {days.map((day) => (
                         <TabsContent key={day.id} value={day.id} className="mt-0 focus-visible:ring-0">
-                            {/* Daily Header Summary or Weather could go here */}
-                            <div className="mb-4">
-                                <h2 className="text-xl font-bold flex items-center gap-2 text-primary drop-shadow-[0_0_8px_rgba(255,46,99,0.5)]">
-                                    Day {day.dayNumber}
-                                    <span className="text-white text-base font-normal opacity-80">
-                                        {day.items[0]?.location || "東京"}
-                                    </span>
-                                </h2>
+                            {/* Daily Header Summary or Weather */}
+                            <div className="mb-4 flex items-end justify-between">
+                                <div>
+                                    <h2 className="text-xl font-bold flex items-center gap-2 text-primary drop-shadow-[0_0_8px_rgba(255,46,99,0.5)]">
+                                        Day {day.dayNumber}
+                                        <span className="text-white text-base font-normal opacity-80">
+                                            {day.items[0]?.location || "東京"}
+                                        </span>
+                                    </h2>
+                                </div>
+
+                                {/* Weather Widget */}
+                                {weather && weather.date.replaceAll('-', '/') === day.date.replaceAll('-', '/') && ( // Simple date check
+                                    <div className="flex flex-col items-end animate-in fade-in slide-in-from-right-4 duration-500">
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-2xl">{getWeatherIconLabel(weather.weatherCode).icon}</span>
+                                            <span className="text-sm font-bold text-white">{weather.temperatureMax}°</span>
+                                            <span className="text-xs text-muted-foreground">/ {weather.temperatureMin}°</span>
+                                        </div>
+                                        <span className="text-[10px] text-muted-foreground">
+                                            {getWeatherIconLabel(weather.weatherCode).label}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-4">
