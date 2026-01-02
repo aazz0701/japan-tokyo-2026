@@ -1,0 +1,148 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, Timestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { ShoppingItem } from "@/lib/shopping";
+import { ShoppingItemForm } from "./ShoppingItemForm";
+import { useUser } from "./UserProvider";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Check, ShoppingBag, ArrowRightLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+
+export function ShoppingView() {
+    const { currentUser } = useUser();
+    const [items, setItems] = useState<ShoppingItem[]>([]);
+
+    useEffect(() => {
+        const q = query(collection(db, "shopping"), orderBy("createdAt", "desc"));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const data: ShoppingItem[] = [];
+            snapshot.forEach((doc) => {
+                data.push({ id: doc.id, ...doc.data() } as ShoppingItem);
+            });
+            setItems(data);
+            // setLoading(false);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    const handleMarkPurchased = async (item: ShoppingItem) => {
+        // TODO: Integrate with Accounting directly? Or just mark as purchased first?
+        // The requirement said: "Automatically prompt accounting entry"
+        // For MVP, lets mark it as purchased first, then MAYBE trigger expense form?
+        // Implementing a simple toggle for now.
+
+        if (window.confirm(`確認已購買「${item.name}」嗎？這會將其移至已購清單。\n(記帳連動功能將在下一版實作)`)) {
+            if (item.id) {
+                await updateDoc(doc(db, "shopping", item.id), {
+                    status: "purchased",
+                    purchasedAt: Timestamp.now()
+                });
+            }
+        }
+    };
+
+    const handleMoveToWishlist = async (item: ShoppingItem) => {
+        if (item.id) {
+            await updateDoc(doc(db, "shopping", item.id), {
+                status: "wishlist",
+                purchasedAt: null
+            });
+        }
+    };
+
+    const wishlist = items.filter(i => i.status === "wishlist");
+    const purchased = items.filter(i => i.status === "purchased");
+
+    return (
+        <div className="w-full">
+            <Tabs defaultValue="wishlist" className="w-full">
+                <div className="sticky top-0 z-30 bg-[#121212]/95 backdrop-blur pt-14 pb-2 px-4 mb-2 border-b border-white/10">
+                    <TabsList className="grid w-full grid-cols-2 bg-secondary/50">
+                        <TabsTrigger value="wishlist">
+                            想買清單 ({wishlist.length})
+                        </TabsTrigger>
+                        <TabsTrigger value="purchased">
+                            已購清單 ({purchased.length})
+                        </TabsTrigger>
+                    </TabsList>
+                </div>
+
+                <TabsContent value="wishlist" className="px-4 space-y-3 pb-24 mt-0">
+                    {wishlist.length === 0 && <div className="text-center py-10 text-muted-foreground">還沒有想買的東西</div>}
+                    {wishlist.map(item => (
+                        <ShoppingCard
+                            key={item.id}
+                            item={item}
+                            onAction={() => handleMarkPurchased(item)}
+                            actionLabel="買到了"
+                            actionIcon={Check}
+                        />
+                    ))}
+                </TabsContent>
+
+                <TabsContent value="purchased" className="px-4 space-y-3 pb-24 mt-0">
+                    {purchased.length === 0 && <div className="text-center py-10 text-muted-foreground">還沒買到任何東西</div>}
+                    {purchased.map(item => (
+                        <ShoppingCard
+                            key={item.id}
+                            item={item}
+                            onAction={() => handleMoveToWishlist(item)}
+                            actionLabel="放回清單"
+                            actionIcon={ArrowRightLeft}
+                            isPurchased
+                        />
+                    ))}
+                </TabsContent>
+
+                <ShoppingItemForm currentUser={currentUser} />
+            </Tabs>
+        </div>
+    );
+}
+
+interface ShoppingCardProps {
+    item: ShoppingItem;
+    onAction: () => void;
+    actionLabel: string;
+    actionIcon: React.ElementType;
+    isPurchased?: boolean;
+}
+
+function ShoppingCard({ item, onAction, actionLabel, actionIcon: Icon, isPurchased }: ShoppingCardProps) {
+    return (
+        <Card className="bg-[#1E1E1E] border-white/5 overflow-hidden">
+            <CardContent className="p-3 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                    <ShoppingBag className="w-5 h-5 text-muted-foreground" />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start">
+                        <h4 className={cn("font-bold text-white truncate", isPurchased && "line-through text-muted-foreground")}>{item.name}</h4>
+                        <Badge variant="outline" className="text-[10px] border-white/10 shrink-0 ml-2">
+                            {item.requestedBy}
+                        </Badge>
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                        預估: {item.currency === "JPY" ? "¥" : "$"}{item.priceEstimate || 0}
+                    </div>
+                </div>
+
+                <Button
+                    size="sm"
+                    variant={isPurchased ? "secondary" : "default"}
+                    onClick={onAction}
+                    className={cn("shrink-0 h-8 px-2", !isPurchased && "bg-green-600 hover:bg-green-700")}
+                >
+                    <Icon className="w-4 h-4 mr-1" />
+                    <span className="text-xs">{actionLabel}</span>
+                </Button>
+            </CardContent>
+        </Card>
+    );
+}
