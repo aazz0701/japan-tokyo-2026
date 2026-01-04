@@ -51,33 +51,7 @@ export function InfoView() {
 
             <Separator className="bg-white/10" />
 
-            {/* 2. Locations */}
-            <section className="space-y-3">
-                <h2 className="text-xl font-bold flex items-center gap-2 text-primary">
-                    <Copy className="w-6 h-6" /> 住宿地址
-                </h2>
-                <div className="space-y-3">
-                    {Object.entries(LOCATIONS).map(([name, address]) => (
-                        <Card key={name} className="bg-[#1E1E1E] border-white/5">
-                            <CardHeader className="p-3 pb-0">
-                                <CardTitle className="text-base text-white">{name}</CardTitle>
-                            </CardHeader>
-                            <CardContent className="p-3 pt-2">
-                                <div className="bg-black/30 p-2 rounded text-sm text-muted-foreground font-mono mb-2 break-all">
-                                    {address}
-                                </div>
-                                <Button size="sm" variant="secondary" className="w-full" onClick={() => handleCopy(address)}>
-                                    <Copy className="w-3 h-3 mr-2" /> 複製地址
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
-            </section>
-
-            <Separator className="bg-white/10" />
-
-            {/* 3. Phrases */}
+            {/* 2. Phrases */}
             <section className="space-y-3">
                 <h2 className="text-xl font-bold flex items-center gap-2 text-primary">
                     <MessageCircle className="w-6 h-6" /> 實用日語

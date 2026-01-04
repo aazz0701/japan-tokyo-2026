@@ -58,24 +58,44 @@ export async function fetchTripWeather(dayNumber: number, dateStr: string): Prom
     }
 }
 
-export function getWeatherIconLabel(code: number): { icon: string, label: string } {
+export interface HourlyWeatherData {
+    time: string[];
+    temperature_2m: number[];
+    weather_code: number[];
+    is_day: number[];
+}
+
+export async function fetchHourlyWeather(lat: number, lng: number): Promise<HourlyWeatherData | null> {
+    try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,weather_code,is_day&current_weather=true&timezone=Asia%2FTokyo&forecast_days=2`;
+
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Hourly weather fetch failed");
+
+        const data = await res.json();
+        return {
+            time: data.hourly.time,
+            temperature_2m: data.hourly.temperature_2m,
+            weather_code: data.hourly.weather_code,
+            is_day: data.hourly.is_day
+        };
+    } catch (error) {
+        console.error("Error fetching hourly weather:", error);
+        return null;
+    }
+}
+
+export function getWeatherIconLabel(code: number, isDay: number = 1): { icon: string, label: string } {
     // WMO Weather interpretation codes (WW)
     // 0: Clear sky
     // 1, 2, 3: Mainly clear, partly cloudy, and overcast
-    // 45, 48: Fog
-    // 51, 53, 55: Drizzle
-    // 56, 57: Freezing Drizzle
-    // 61, 63, 65: Rain
-    // 66, 67: Freezing Rain
-    // 71, 73, 75: Snow fall
-    // 77: Snow grains
-    // 80, 81, 82: Rain showers
-    // 85, 86: Snow showers
-    // 95: Thunderstorm
-    // 96, 99: Thunderstorm with slight and heavy hail
+    const isNight = isDay === 0;
 
-    if (code === 0) return { icon: "☀️", label: "晴朗" };
-    if (code >= 1 && code <= 3) return { icon: "⛅", label: "多雲" };
+    if (code === 0) return { icon: isNight ? "🌙" : "☀️", label: "晴朗" };
+    if (code === 1) return { icon: isNight ? "🌙" : "🌤️", label: "大致晴朗" };
+    if (code === 2) return { icon: "⛅", label: "多雲" };
+    if (code === 3) return { icon: "☁️", label: "陰天" };
+
     if (code >= 45 && code <= 48) return { icon: "🌫️", label: "霧" };
     if (code >= 51 && code <= 57) return { icon: "🌧️", label: "毛毛雨" };
     if (code >= 61 && code <= 67) return { icon: "🌧️", label: "雨" };

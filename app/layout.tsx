@@ -56,27 +56,7 @@ function TopUserBar() {
 
   if (pathname === "/") return null; // Maybe hide on landing if we have one, but we are SPA basically.
 
-  return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur border-b border-white/10 px-4 py-2 flex justify-between items-center max-w-md mx-auto">
-      <div className="text-xs text-muted-foreground">Current View:</div>
-      <div className="flex gap-2 overflow-x-auto no-scrollbar">
-        {USERS.map((user) => (
-          <button
-            key={user}
-            onClick={() => handleUserChange(user)}
-            className={cn(
-              "px-3 py-1 rounded-full text-xs transition-colors whitespace-nowrap",
-              currentUser === user
-                ? "bg-primary text-white font-bold shadow-[0_0_10px_#FF2E63]"
-                : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-            )}
-          >
-            {user}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+  return null;
 }
 
 function BottomNav() {
