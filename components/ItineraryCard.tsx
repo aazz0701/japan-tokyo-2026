@@ -6,7 +6,9 @@ import { MapPin, Navigation, Clock, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface ItineraryItem {
-    timeRange: string;
+    timeRange?: string; // Deprecated, kept for backward compatibility
+    startTime?: string;
+    endTime?: string;
     duration: string;
     activity: string;
     location: string;
@@ -42,20 +44,10 @@ export function ItineraryCard({ item, onEdit, onDelete }: ItineraryCardProps) {
             <CardContent className="p-3">
                 <div className="flex justify-between items-start mb-1">
                     <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs font-mono px-1 py-0 h-5 border-white/20 text-muted-foreground">
-                            {item.timeRange || "---"}
+                        <Badge variant="outline" className="text-sm font-mono px-2 py-0.5 h-6 border-white/20 text-white bg-white/10">
+                            {item.startTime || "---"}
                         </Badge>
-                        {item.duration && (
-                            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                                <Clock className="w-3 h-3" /> {item.duration}
-                            </span>
-                        )}
                     </div>
-                    {item.cost && item.cost !== "-" && (
-                        <Badge variant="secondary" className="text-[10px] bg-green-900/40 text-green-400 hover:bg-green-900/60">
-                            {item.cost}
-                        </Badge>
-                    )}
                 </div>
 
                 <h3 className="font-bold text-base leading-tight mb-1 text-white pr-12">
@@ -92,12 +84,6 @@ export function ItineraryCard({ item, onEdit, onDelete }: ItineraryCardProps) {
 
                 {/* Details Section */}
                 <div className="space-y-1 text-xs text-muted-foreground mt-2 pl-2 border-l border-white/10">
-                    {item.transport && item.transport !== "-" && (
-                        <div className="flex gap-2">
-                            <span className="shrink-0 w-8 text-white/50">交通:</span>
-                            <span>{item.transport}</span>
-                        </div>
-                    )}
                     {item.note && item.note !== "-" && (
                         <div className="flex gap-2">
                             <span className="shrink-0 w-8 text-white/50">備註:</span>

@@ -18,6 +18,8 @@ interface ItineraryItemFormProps {
 
 const DEFAULT_ITEM: ItineraryItem = {
     timeRange: "",
+    startTime: "",
+    endTime: "",
     duration: "",
     activity: "",
     location: "",
@@ -72,13 +74,24 @@ export function ItineraryItemForm({ open, onOpenChange, onSubmit, initialData, m
                     </div>
 
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="time" className="text-right text-gray-400">時間</Label>
+                        <Label htmlFor="startTime" className="text-right text-gray-400">開始時間</Label>
                         <Input
-                            id="time"
-                            value={formData.timeRange}
-                            onChange={(e) => handleChange("timeRange", e.target.value)}
+                            id="startTime"
+                            type="time"
+                            value={formData.startTime || ""}
+                            onChange={(e) => handleChange("startTime", e.target.value)}
                             className="col-span-3 bg-white/5 border-white/10 text-white"
-                            placeholder="例如: 10:00 - 12:00"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="endTime" className="text-right text-gray-400">結束時間</Label>
+                        <Input
+                            id="endTime"
+                            type="time"
+                            value={formData.endTime || ""}
+                            onChange={(e) => handleChange("endTime", e.target.value)}
+                            className="col-span-3 bg-white/5 border-white/10 text-white"
                         />
                     </div>
 

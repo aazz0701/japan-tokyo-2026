@@ -100,6 +100,50 @@ export function ItineraryView() {
         }
     };
 
+    const handleTimeMigration = async () => {
+        if (!confirm("確定要執行時間格式轉換嗎？這將會更新所有的資料。")) return;
+
+        let totalUpdated = 0;
+        let errors = 0;
+
+        for (const day of days) {
+            let hasChanges = false;
+            const newItems = day.items.map(item => {
+                // If item has timeRange but no startTime/endTime, try to migrate
+                if (item.timeRange && !item.startTime) {
+                    // Try to parse "10:00 - 12:00" or "10:00"
+                    const parts = item.timeRange.split("-").map(s => s.trim());
+                    if (parts.length >= 1) {
+                        const startTime = parts[0];
+                        const endTime = parts.length > 1 ? parts[1] : undefined;
+                        hasChanges = true;
+                        return {
+                            ...item,
+                            startTime,
+                            endTime,
+                            // Keep timeRange for safety or remove it? Plan said "v1 to v2", implies we might keep or not.
+                            // But usually migration means we fill the new fields.
+                            // Let's keep timeRange for now as the interface says "Deprecated, kept for backward compatibility"
+                        };
+                    }
+                }
+                return item;
+            });
+
+            if (hasChanges) {
+                try {
+                    await updateDoc(doc(db, "itinerary", day.id), { items: newItems });
+                    totalUpdated++;
+                } catch (error) {
+                    console.error(`Failed to update day ${day.id}:`, error);
+                    errors++;
+                }
+            }
+        }
+
+        alert(`轉換完成\n已更新天數: ${totalUpdated}\n失敗: ${errors}`);
+    };
+
     useEffect(() => {
         if (!activeTab || days.length === 0) return;
 
@@ -298,10 +342,22 @@ export function ItineraryView() {
             </AlertDialog>
 
             <ItineraryItemForm
-                open={isAddOpen}
-                onOpenChange={setIsAddOpen}
-                onSubmit={handleAddItem}
-                mode="add"
+                open={isAddOpen || !!editingItem}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setIsAddOpen(false);
+                        setEditingItem(null);
+                    }
+                }}
+                onSubmit={(item) => {
+                    if (editingItem) {
+                        handleEditItem(item);
+                    } else {
+                        handleAddItem(item);
+                    }
+                }}
+                initialData={editingItem?.item}
+                mode={editingItem ? "edit" : "add"}
             />
         </div>
     );
