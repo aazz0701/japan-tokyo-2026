@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Navigation, Clock } from "lucide-react";
+import { MapPin, Navigation, Clock, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface ItineraryItem {
@@ -13,16 +13,19 @@ export interface ItineraryItem {
     transport: string;
     cost: string;
     note: string;
+    category?: '景點' | '交通' | '用餐' | '其他';
 }
 
 interface ItineraryCardProps {
     item: ItineraryItem;
+    onEdit?: () => void;
+    onDelete?: () => void;
 }
 
-export function ItineraryCard({ item }: ItineraryCardProps) {
+export function ItineraryCard({ item, onEdit, onDelete }: ItineraryCardProps) {
     // Simple check to highlight critical items (e.g. Flight, Train)
-    const isTransport = item.activity.includes("飛往") || item.activity.includes("新幹線") || item.activity.includes("移動");
-    const isFood = item.activity.includes("晚餐") || item.activity.includes("午餐") || item.activity.includes("早餐");
+    const isTransport = item.category === '交通' || (!item.category && (item.activity.includes("飛往") || item.activity.includes("新幹線") || item.activity.includes("移動")));
+    const isFood = item.category === '用餐' || (!item.category && (item.activity.includes("晚餐") || item.activity.includes("午餐") || item.activity.includes("早餐")));
 
     const openGoogleMaps = () => {
         if (!item.location) return;
@@ -55,9 +58,23 @@ export function ItineraryCard({ item }: ItineraryCardProps) {
                     )}
                 </div>
 
-                <h3 className="font-bold text-base leading-tight mb-1 text-white">
+                <h3 className="font-bold text-base leading-tight mb-1 text-white pr-12">
                     {item.activity}
                 </h3>
+
+                {/* Edit/Delete Actions */}
+                <div className="absolute top-3 right-3 flex gap-2">
+                    {onEdit && (
+                        <button onClick={onEdit} className="text-white/40 hover:text-white transition-colors">
+                            <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                    )}
+                    {onDelete && (
+                        <button onClick={onDelete} className="text-white/40 hover:text-red-500 transition-colors">
+                            <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                    )}
+                </div>
 
                 {item.location && (
                     <div className="flex items-center gap-2 mb-2">
