@@ -11,7 +11,7 @@ interface WeatherForecastProps {
     locationName: string;
 }
 
-export function WeatherForecast({ coords, locationName }: WeatherForecastProps) {
+export function WeatherForecast({ coords }: Omit<WeatherForecastProps, 'locationName'>) {
     const [weather, setWeather] = useState<HourlyWeatherData | null>(null);
     const [loading, setLoading] = useState(true);
     const [currentTemp, setCurrentTemp] = useState<number | null>(null);

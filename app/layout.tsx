@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { UserProvider } from "@/components/UserProvider";
 import { Calendar, CreditCard, ShoppingBag, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { USERS } from "@/lib/constants";
+// import { USERS } from "@/lib/constants";
 
 export default function RootLayout({
   children,
@@ -42,20 +42,13 @@ export default function RootLayout({
   );
 }
 
+// import { USERS } from "@/lib/constants"; // Unused
+
+// ...
+
 function TopUserBar() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const pathname = usePathname();
-  const currentUser = searchParams.get("u");
-
-  const handleUserChange = (u: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("u", u);
-    router.replace(`${pathname}?${params.toString()}`);
-  };
-
-  if (pathname === "/") return null; // Maybe hide on landing if we have one, but we are SPA basically.
-
+  if (pathname === "/") return null;
   return null;
 }
 

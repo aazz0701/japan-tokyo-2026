@@ -114,49 +114,7 @@ export function ItineraryView() {
         }
     };
 
-    const handleTimeMigration = async () => {
-        if (!confirm("確定要執行時間格式轉換嗎？這將會更新所有的資料。")) return;
-
-        let totalUpdated = 0;
-        let errors = 0;
-
-        for (const day of days) {
-            let hasChanges = false;
-            const newItems = day.items.map(item => {
-                // If item has timeRange but no startTime/endTime, try to migrate
-                if (item.timeRange && !item.startTime) {
-                    // Try to parse "10:00 - 12:00" or "10:00"
-                    const parts = item.timeRange.split("-").map(s => s.trim());
-                    if (parts.length >= 1) {
-                        const startTime = parts[0];
-                        const endTime = parts.length > 1 ? parts[1] : undefined;
-                        hasChanges = true;
-                        return {
-                            ...item,
-                            startTime,
-                            endTime,
-                            // Keep timeRange for safety or remove it? Plan said "v1 to v2", implies we might keep or not.
-                            // But usually migration means we fill the new fields.
-                            // Let's keep timeRange for now as the interface says "Deprecated, kept for backward compatibility"
-                        };
-                    }
-                }
-                return item;
-            });
-
-            if (hasChanges) {
-                try {
-                    await updateDoc(doc(db, "itinerary", day.id), { items: newItems });
-                    totalUpdated++;
-                } catch (error) {
-                    console.error(`Failed to update day ${day.id}:`, error);
-                    errors++;
-                }
-            }
-        }
-
-        alert(`轉換完成\n已更新天數: ${totalUpdated}\n失敗: ${errors}`);
-    };
+    // const handleTimeMigration = async () => { ... } // Removed unused function
 
     const handleCopyAddress = (address: string) => {
         navigator.clipboard.writeText(address);
@@ -285,7 +243,7 @@ export function ItineraryView() {
                                     <h2 className="text-xl font-bold flex items-center gap-2 text-primary drop-shadow-[0_0_8px_rgba(255,46,99,0.5)]">
                                         Day {day.dayNumber}
                                         <span className="text-white text-base font-normal opacity-80">
-                                            {day.items[0]?.location || "東京"}
+                                            {/* {day.items[0]?.location || "東京"} */}
                                         </span>
                                     </h2>
                                 </div>
@@ -322,7 +280,6 @@ export function ItineraryView() {
                             {day.accommodation?.coords && (
                                 <WeatherForecast
                                     coords={day.accommodation.coords}
-                                    locationName={day.accommodation.name}
                                 />
                             )}
 

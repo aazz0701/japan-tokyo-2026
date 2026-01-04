@@ -2,7 +2,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Navigation, Clock, Pencil, Trash2 } from "lucide-react";
+import { MapPin, Navigation, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface ItineraryItem {

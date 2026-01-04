@@ -1,17 +1,13 @@
 "use client";
 
-import { LOCATIONS } from "@/lib/constants";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Phone, ExternalLink, MessageCircle } from "lucide-react";
+import { Phone, ExternalLink, MessageCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export function InfoView() {
-    const handleCopy = (text: string) => {
-        navigator.clipboard.writeText(text);
-        alert("已複製到剪貼簿！");
-    };
+    // const handleCopy = (text: string) => { ... } // Removed unused function
 
     const PHRASES = [
         { jp: "すみません", romaji: "Sumimasen", zh: "不好意思 / 請問" },
