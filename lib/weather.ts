@@ -23,20 +23,60 @@ const LOCATION_COORDS: Record<number, { lat: number; lng: number }> = {
     9: { lat: 35.704, lng: 139.782 }, // Okachimachi
 };
 
+// Cache duration: 1 hour (ms)
+const CACHE_DURATION = 3600 * 1000;
+
+function getCache(key: string) {
+    if (typeof window === 'undefined') return null;
+    try {
+        const item = localStorage.getItem(key);
+        if (!item) return null;
+
+        const { timestamp, data } = JSON.parse(item);
+        if (Date.now() - timestamp < CACHE_DURATION) {
+            console.log(`[Weather Cache] Hit for ${key}`);
+            return data;
+        }
+        console.log(`[Weather Cache] Expired for ${key}`);
+        localStorage.removeItem(key);
+        return null;
+    } catch (e) {
+        console.error("Cache read error", e);
+        return null;
+    }
+}
+
+function setCache(key: string, data: any) {
+    if (typeof window === 'undefined') return;
+    try {
+        const payload = JSON.stringify({
+            timestamp: Date.now(),
+            data
+        });
+        localStorage.setItem(key, payload);
+    } catch (e) {
+        console.error("Cache write error", e);
+    }
+}
+
 /**
  * Fetch daily weather forecast for a specific trip day.
  * Uses Open-Meteo API (free, no key required).
  */
 export async function fetchTripWeather(dayNumber: number, dateStr: string): Promise<WeatherData | null> {
+    const coords = LOCATION_COORDS[dayNumber];
+    if (!coords) return null;
+
+    // formattedDate logic moved duplicate code
+    const dateObj = new Date(dateStr);
+    const formattedDate = dateObj.toISOString().split('T')[0];
+
+    const cacheKey = `weather_trip_${dayNumber}_${formattedDate}`;
+    const cached = getCache(cacheKey);
+    if (cached) return cached as WeatherData;
+
     try {
-        const coords = LOCATION_COORDS[dayNumber];
-        if (!coords) return null;
-
         // Open-Meteo requires YYYY-MM-DD format
-        // dateStr is assumed to be "yyyy/m/d" from our DB, need to format standard
-        const dateObj = new Date(dateStr);
-        const formattedDate = dateObj.toISOString().split('T')[0];
-
         const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lng}&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia%2FTokyo&start_date=${formattedDate}&end_date=${formattedDate}`;
 
         const res = await fetch(url);
@@ -46,12 +86,15 @@ export async function fetchTripWeather(dayNumber: number, dateStr: string): Prom
 
         if (!data.daily || !data.daily.weather_code) return null;
 
-        return {
+        const result: WeatherData = {
             temperatureMax: data.daily.temperature_2m_max[0],
             temperatureMin: data.daily.temperature_2m_min[0],
             weatherCode: data.daily.weather_code[0],
             date: formattedDate
         };
+
+        setCache(cacheKey, result);
+        return result;
     } catch (error) {
         console.error("Error fetching weather:", error);
         return null;
@@ -70,6 +113,10 @@ export interface HourlyWeatherData {
 }
 
 export async function fetchHourlyWeather(lat: number, lng: number): Promise<HourlyWeatherData | null> {
+    const cacheKey = `weather_hourly_${lat}_${lng}`;
+    const cached = getCache(cacheKey);
+    if (cached) return cached as HourlyWeatherData;
+
     try {
         const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,weather_code,is_day,snowfall,snow_depth,windspeed_10m,apparent_temperature&current_weather=true&timezone=Asia%2FTokyo&forecast_days=2`;
 
@@ -77,7 +124,7 @@ export async function fetchHourlyWeather(lat: number, lng: number): Promise<Hour
         if (!res.ok) throw new Error("Hourly weather fetch failed");
 
         const data = await res.json();
-        return {
+        const result: HourlyWeatherData = {
             time: data.hourly.time,
             temperature_2m: data.hourly.temperature_2m,
             weather_code: data.hourly.weather_code,
@@ -87,6 +134,9 @@ export async function fetchHourlyWeather(lat: number, lng: number): Promise<Hour
             windspeed_10m: data.hourly.windspeed_10m,
             apparent_temperature: data.hourly.apparent_temperature
         };
+
+        setCache(cacheKey, result);
+        return result;
     } catch (error) {
         console.error("Error fetching hourly weather:", error);
         return null;

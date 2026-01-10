@@ -1,9 +1,9 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Phone, ExternalLink, MessageCircle, Calculator, Moon, Sun, ArrowRightLeft } from "lucide-react";
+import { Phone, ExternalLink, MessageCircle, Calculator, ArrowRightLeft, TrainFront, Map } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ export function InfoView() {
     const [rate, setRate] = useState<string>("0.22");
 
     const twd = jpy ? Math.round(parseInt(jpy) * parseFloat(rate)) : 0;
-    const { theme, toggleTheme } = useUser();
+    // const { theme, toggleTheme } = useUser(); // Moved to ItineraryView
 
     const PHRASES = [
         { jp: "すみません", romaji: "Sumimasen", zh: "不好意思 / 請問" },
@@ -75,6 +75,33 @@ export function InfoView() {
                                 className="w-16 h-6 text-xs text-right p-1 bg-background"
                             />
                         </div>
+                    </CardContent>
+                </Card>
+            </section>
+
+            <Separator className="bg-border" />
+
+            {/* 2. Traffic Info (New for Phase 3) */}
+            <section className="space-y-3">
+                <h2 className="text-xl font-bold flex items-center gap-2 text-primary">
+                    <TrainFront className="w-6 h-6" /> 交通資訊
+                </h2>
+                <div className="grid grid-cols-2 gap-3">
+                    <Button variant="outline" className="h-auto py-3 flex flex-col gap-1 items-center bg-card border-border hover:bg-muted" onClick={() => window.open("https://www.tokyometro.jp/tcn/subwaymap/index.html", "_blank")}>
+                        <Map className="w-6 h-6 text-blue-500" />
+                        <span className="text-sm">東京地鐵圖</span>
+                    </Button>
+                    <Button variant="outline" className="h-auto py-3 flex flex-col gap-1 items-center bg-card border-border hover:bg-muted" onClick={() => window.open("https://www.jreast.co.jp/multi/zh-CHT/index.html", "_blank")}>
+                        <TrainFront className="w-6 h-6 text-green-600" />
+                        <span className="text-sm">JR 東日本</span>
+                    </Button>
+                </div>
+                <Card className="bg-card border-border">
+                    <CardContent className="p-3 text-sm text-muted-foreground flex gap-2 items-start">
+                        <span className="text-lg">💡</span>
+                        <span>
+                            進站時請確保 Suica/Pasmo 餘額充足。蘋果手機可直接用 Apple Pay 儲值西瓜卡。
+                        </span>
                     </CardContent>
                 </Card>
             </section>
