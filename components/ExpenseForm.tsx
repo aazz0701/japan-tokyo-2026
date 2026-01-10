@@ -84,7 +84,7 @@ export function ExpenseForm({ currentUser }: ExpenseFormProps) {
                     <Plus className="w-8 h-8 text-white" />
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md bg-[#1E1E1E] border-white/10 text-white max-h-[90vh] overflow-y-auto w-[95%] rounded-xl">
+            <DialogContent className="max-w-md bg-card border-border text-foreground max-h-[90vh] overflow-y-auto w-[95%] rounded-xl">
                 <DialogHeader>
                     <DialogTitle>新增支出</DialogTitle>
                 </DialogHeader>
@@ -99,14 +99,14 @@ export function ExpenseForm({ currentUser }: ExpenseFormProps) {
                                 inputMode="decimal"
                                 value={amount}
                                 onChange={e => setAmount(e.target.value)}
-                                className="text-lg font-bold bg-white/5 border-white/10"
+                                className="text-lg font-bold bg-muted border-input"
                                 placeholder="0"
                                 autoFocus
                             />
                         </div>
                         <div className="col-span-1">
                             <Label>幣別</Label>
-                            <div className="flex bg-white/5 rounded-md p-1 border border-white/10 h-10">
+                            <div className="flex bg-muted rounded-md p-1 border border-input h-10">
                                 <button
                                     onClick={() => setCurrency("JPY")}
                                     className={cn("flex-1 rounded text-sm font-bold transition-all", currency === "JPY" ? "bg-primary text-white" : "text-muted-foreground")}
@@ -121,13 +121,13 @@ export function ExpenseForm({ currentUser }: ExpenseFormProps) {
 
                     {/* Rate & Calculated TWD (Only if JPY) */}
                     {currency === "JPY" && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white/5 p-2 rounded">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 p-2 rounded">
                             <span>匯率:</span>
                             <Input
                                 type="number"
                                 value={exchangeRate}
                                 onChange={e => setExchangeRate(e.target.value)}
-                                className="w-20 h-6 text-xs bg-transparent border-white/20"
+                                className="w-20 h-6 text-xs bg-transparent border-input"
                             />
                             <span className="ml-auto">≈ {totalTWD} TWD</span>
                         </div>
@@ -140,7 +140,7 @@ export function ExpenseForm({ currentUser }: ExpenseFormProps) {
                             value={description}
                             onChange={e => setDescription(e.target.value)}
                             placeholder="例如：午餐、車票"
-                            className="bg-white/5 border-white/10"
+                            className="bg-background border-input"
                         />
                     </div>
 
@@ -148,10 +148,10 @@ export function ExpenseForm({ currentUser }: ExpenseFormProps) {
                     <div>
                         <Label>類別</Label>
                         <Select value={category} onValueChange={(v) => setCategory(v as ExpenseCategory)}>
-                            <SelectTrigger className="bg-white/5 border-white/10">
+                            <SelectTrigger className="bg-background border-input">
                                 <SelectValue placeholder="選擇類別" />
                             </SelectTrigger>
-                            <SelectContent className="bg-[#1E1E1E] border-white/10 text-white">
+                            <SelectContent className="bg-popover border-border text-popover-foreground">
                                 {EXPENSE_CATEGORIES.map(c => (
                                     <SelectItem key={c} value={c}>{c}</SelectItem>
                                 ))}
@@ -169,7 +169,7 @@ export function ExpenseForm({ currentUser }: ExpenseFormProps) {
                                     onClick={() => setPayer(u)}
                                     className={cn(
                                         "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all border shrink-0",
-                                        payer === u ? "bg-primary border-primary text-white shadow-[0_0_8px_#FF2E63]" : "bg-white/5 border-white/10 text-muted-foreground"
+                                        payer === u ? "bg-primary border-primary text-white shadow-[0_0_8px_#FF2E63]" : "bg-muted border-input text-muted-foreground"
                                     )}
                                 >
                                     {u}
@@ -198,7 +198,7 @@ export function ExpenseForm({ currentUser }: ExpenseFormProps) {
                                         onClick={() => toggleShare(u)}
                                         className={cn(
                                             "aspect-square rounded-md flex items-center justify-center text-sm font-bold transition-all border",
-                                            isSelected ? "bg-secondary text-white border-primary/50" : "bg-transparent border-white/10 text-muted-foreground opacity-50"
+                                            isSelected ? "bg-secondary text-foreground border-primary/50" : "bg-transparent border-input text-muted-foreground opacity-50"
                                         )}
                                     >
                                         {u}
@@ -216,7 +216,7 @@ export function ExpenseForm({ currentUser }: ExpenseFormProps) {
                 </div>
 
                 <DialogFooter className="mt-2">
-                    <Button onClick={handleSubmit} disabled={!amount || isSubmitting} className="w-full h-12 text-lg font-bold">
+                    <Button onClick={handleSubmit} disabled={!amount || isSubmitting} className="w-full h-12 text-lg font-bold text-white">
                         新增支出
                     </Button>
                 </DialogFooter>

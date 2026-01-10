@@ -42,9 +42,9 @@ export function AccountingView() {
     return (
         <div className="px-4 py-4 space-y-6">
             {/* 1. Summary Card */}
-            <Card className="bg-gradient-to-br from-[#1E1E1E] to-[#252525] border-white/10">
+            <Card className="bg-gradient-to-br from-card to-background border-border">
                 <CardContent className="p-4">
-                    <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                    <h2 className="text-lg font-bold mb-4 flex items-center gap-2 text-foreground">
                         💰 目前結算
                         <span className="text-xs font-normal text-muted-foreground ml-auto">
                             (正=應收, 負=應付)
@@ -57,12 +57,12 @@ export function AccountingView() {
                             const isMe = currentUser === user;
 
                             return (
-                                <div key={user} className={cn("flex justify-between items-center p-2 rounded", isMe ? "bg-white/5 border border-white/10" : "")}>
+                                <div key={user} className={cn("flex justify-between items-center p-2 rounded", isMe ? "bg-muted border border-border" : "")}>
                                     <div className="flex items-center gap-2">
                                         <div className={cn("w-2 h-2 rounded-full", isPositive ? "bg-green-500" : "bg-red-500")} />
-                                        <span className={cn("font-bold text-sm", isMe ? "text-primary" : "text-white")}>{user}</span>
+                                        <span className={cn("font-bold text-sm", isMe ? "text-primary" : "text-foreground")}>{user}</span>
                                     </div>
-                                    <span className={cn("font-mono text-sm", isPositive ? "text-green-400" : "text-red-400")}>
+                                    <span className={cn("font-mono text-sm", isPositive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
                                         {balance > 0 ? "+" : ""}{balance}
                                     </span>
                                 </div>
@@ -76,18 +76,18 @@ export function AccountingView() {
             <div className="space-y-3 pb-20">
                 <h3 className="text-sm font-medium text-muted-foreground pl-1">近期支出 ({expenses.length})</h3>
                 {loading ? (
-                    <div className="text-center py-10 opacity-50">載入中...</div>
+                    <div className="text-center py-10 opacity-50 text-muted-foreground">載入中...</div>
                 ) : expenses.length === 0 ? (
-                    <div className="text-center py-10 text-muted-foreground bg-white/5 rounded-lg border border-dashed border-white/10">
+                    <div className="text-center py-10 text-muted-foreground bg-muted/20 rounded-lg border border-dashed border-border">
                         還沒有任何支出記錄
                     </div>
                 ) : (
                     expenses.map((ex) => (
-                        <Card key={ex.id} className="bg-[#1E1E1E] border-white/5 relative group overflow-hidden">
+                        <Card key={ex.id} className="bg-card border-border relative group overflow-hidden transition-colors">
                             <CardContent className="p-3 flex items-center gap-3">
                                 {/* Payer Avatar */}
                                 <div className="shrink-0 flex flex-col items-center gap-1">
-                                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold border border-primary/30">
+                                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold border border-primary/20">
                                         {ex.payer}
                                     </div>
                                 </div>
@@ -95,8 +95,8 @@ export function AccountingView() {
                                 {/* Info */}
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-start">
-                                        <h4 className="font-bold text-white truncate pr-2">{ex.description || ex.category}</h4>
-                                        <span className="font-mono font-bold text-white shrink-0">
+                                        <h4 className="font-bold text-foreground truncate pr-2">{ex.description || ex.category}</h4>
+                                        <span className="font-mono font-bold text-foreground shrink-0">
                                             {ex.currency === "JPY" ? `¥${ex.amount}` : `$${ex.amountTWD}`}
                                         </span>
                                     </div>
@@ -119,7 +119,7 @@ export function AccountingView() {
                                 {/* Delete Action (visible on hover or swipe - keep distinct) */}
                                 <button
                                     onClick={() => ex.id && handleDelete(ex.id)}
-                                    className="absolute right-0 top-0 bottom-0 w-12 bg-red-900/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm"
+                                    className="absolute right-0 top-0 bottom-0 w-12 bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm"
                                 >
                                     <Trash2 className="w-5 h-5" />
                                 </button>

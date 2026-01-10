@@ -1,5 +1,7 @@
 "use client";
 
+import { useUser } from "@/components/UserProvider";
+
 import { useEffect, useState } from "react";
 import { collection, query, onSnapshot, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -13,7 +15,7 @@ import { fetchTripWeather, getWeatherIconLabel, WeatherData } from "@/lib/weathe
 import { ItineraryItemForm } from "./ItineraryItemForm";
 import { WeatherForecast } from "./WeatherForecast";
 import { Button } from "@/components/ui/button";
-import { Plus, Settings } from "lucide-react";
+import { Plus, Settings, Moon, Sun } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
@@ -59,6 +61,7 @@ export function ItineraryView() {
     const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<number | null>(null);
     const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
+    const { theme, toggleTheme } = useUser();
 
     const handleAddItem = async (item: ItineraryItem) => {
         const currentDay = days.find(d => d.id === activeTab);
@@ -183,16 +186,23 @@ export function ItineraryView() {
         <div className="w-full">
             <Tabs defaultValue="day-1" value={activeTab} onValueChange={setActiveTab} className="w-full">
                 {/* ... (existing Sticky Tab Header) */}
-                <div className="sticky top-0 z-30 bg-[#121212]/95 backdrop-blur pt-4 pb-2 px-1 border-b border-white/10 shadow-lg shadow-black/50">
+                <div className="sticky top-0 z-30 bg-background/95 backdrop-blur pt-4 pb-2 px-1 border-b border-border shadow-lg shadow-black/5 dark:shadow-black/50 transition-colors">
                     <div className="flex items-center justify-center pb-2 relative">
-                        <h1 className="text-2xl font-black italic tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white via-primary to-white drop-shadow-[0_0_10px_rgba(255,46,99,0.8)]">
+                        <button
+                            onClick={toggleTheme}
+                            className="absolute right-12 top-1 opacity-50 hover:opacity-100 transition-opacity p-1"
+                        >
+                            {theme === 'dark' ? <Moon className="w-5 h-5 text-foreground" /> : <Sun className="w-5 h-5 text-yellow-500" />}
+                        </button>
+
+                        <h1 className="text-2xl font-black italic tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-foreground via-primary to-foreground drop-shadow-[0_0_10px_rgba(255,46,99,0.8)]">
                             東京滑雪
                         </h1>
                         <button
                             onClick={() => setIsSettingsOpen(true)}
-                            className="absolute right-2 top-1 opacity-50 hover:opacity-100 transition-opacity"
+                            className="absolute right-2 top-1 opacity-50 hover:opacity-100 transition-opacity p-1"
                         >
-                            <Settings className="w-5 h-5 text-white" />
+                            <Settings className="w-5 h-5 text-foreground" />
                         </button>
                     </div>
                     {/* ... (existing TabsList) */}
@@ -213,7 +223,7 @@ export function ItineraryView() {
                                             "flex flex-col items-center justify-center min-w-[3.5rem] py-2 px-1 rounded-lg border border-transparent transition-all",
                                             isActive
                                                 ? "bg-primary text-white border-primary/50 shadow-[0_0_15px_rgba(255,46,99,0.3)]"
-                                                : "bg-secondary text-muted-foreground border-white/5 opacity-70"
+                                                : "bg-secondary text-muted-foreground border-border/50 opacity-70"
                                         )}
                                     >
                                         <span className="text-[10px] font-mono leading-none mb-1 opacity-80">
@@ -242,7 +252,7 @@ export function ItineraryView() {
                                 <div>
                                     <h2 className="text-xl font-bold flex items-center gap-2 text-primary drop-shadow-[0_0_8px_rgba(255,46,99,0.5)]">
                                         Day {day.dayNumber}
-                                        <span className="text-white text-base font-normal opacity-80">
+                                        <span className="text-foreground text-base font-normal opacity-80">
                                             {/* {day.items[0]?.location || "東京"} */}
                                         </span>
                                     </h2>
@@ -253,7 +263,7 @@ export function ItineraryView() {
                                     {day.accommodation && (
                                         <button
                                             onClick={() => setSelectedAccommodation(day.accommodation!)}
-                                            className="flex items-center gap-1.5 text-xs font-medium text-white/80 hover:text-primary transition-all bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/10 shadow-sm mb-0.5 group"
+                                            className="flex items-center gap-1.5 text-xs font-medium text-foreground/80 hover:text-primary transition-all bg-card/50 hover:bg-card px-3 py-1.5 rounded-full backdrop-blur-sm border border-border shadow-sm mb-0.5 group"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bed-double group-hover:text-primary/80"><path d="M2 4v16" /><path d="M2 8h18a2 2 0 0 1 2 2v10" /><path d="M2 17h20" /><path d="M6 8v9" /></svg>
                                             <span>住宿：{day.accommodation.name}</span>
@@ -265,7 +275,7 @@ export function ItineraryView() {
                                         <div className="flex flex-col items-end animate-in fade-in slide-in-from-right-4 duration-500">
                                             <div className="flex items-center gap-1">
                                                 <span className="text-2xl">{getWeatherIconLabel(weather.weatherCode).icon}</span>
-                                                <span className="text-sm font-bold text-white">{weather.temperatureMax}°</span>
+                                                <span className="text-sm font-bold text-foreground">{weather.temperatureMax}°</span>
                                                 <span className="text-xs text-muted-foreground">/ {weather.temperatureMin}°</span>
                                             </div>
                                             <span className="text-[10px] text-muted-foreground">

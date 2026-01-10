@@ -21,6 +21,7 @@ export function ShoppingItemForm({ currentUser }: ShoppingItemFormProps) {
     const [priceEstimate, setPriceEstimate] = useState("");
     const [currency, setCurrency] = useState<"JPY" | "TWD">("JPY");
     const [requestedBy, setRequestedBy] = useState<UserName>(currentUser || USERS[0]);
+    const [imageUrl, setImageUrl] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
@@ -39,6 +40,7 @@ export function ShoppingItemForm({ currentUser }: ShoppingItemFormProps) {
                 priceEstimate: priceEstimate ? parseFloat(priceEstimate) : 0,
                 currency,
                 requestedBy,
+                referenceImage: imageUrl,
                 status: "wishlist", // Default to wishlist
                 createdAt: Timestamp.now(),
             });
@@ -46,6 +48,7 @@ export function ShoppingItemForm({ currentUser }: ShoppingItemFormProps) {
             setOpen(false);
             setName("");
             setPriceEstimate("");
+            setImageUrl("");
         } catch (e) {
             console.error("Error adding shopping item:", e);
             alert("新增失敗");
@@ -61,7 +64,7 @@ export function ShoppingItemForm({ currentUser }: ShoppingItemFormProps) {
                     <Plus className="w-8 h-8 text-white" />
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md bg-[#1E1E1E] border-white/10 text-white max-h-[90vh] overflow-y-auto w-[95%] rounded-xl">
+            <DialogContent className="max-w-md bg-card border-border text-foreground max-h-[90vh] overflow-y-auto w-[95%] rounded-xl">
                 <DialogHeader>
                     <DialogTitle>想買什麼？(Wishlist)</DialogTitle>
                 </DialogHeader>
@@ -73,7 +76,7 @@ export function ShoppingItemForm({ currentUser }: ShoppingItemFormProps) {
                         <Input
                             value={name}
                             onChange={e => setName(e.target.value)}
-                            className="bg-white/5 border-white/10"
+                            className="bg-background border-input"
                             placeholder="例如：東京香蕉、藥妝"
                             autoFocus
                         />
@@ -87,13 +90,13 @@ export function ShoppingItemForm({ currentUser }: ShoppingItemFormProps) {
                                 type="number"
                                 value={priceEstimate}
                                 onChange={e => setPriceEstimate(e.target.value)}
-                                className="bg-white/5 border-white/10"
+                                className="bg-background border-input"
                                 placeholder="0"
                             />
                         </div>
                         <div>
                             <Label>幣別</Label>
-                            <div className="flex bg-white/5 rounded-md p-1 border border-white/10 h-10">
+                            <div className="flex bg-muted rounded-md p-1 border border-input h-10">
                                 <button
                                     onClick={() => setCurrency("JPY")}
                                     className={cn("flex-1 rounded text-sm font-bold transition-all", currency === "JPY" ? "bg-primary text-white" : "text-muted-foreground")}
@@ -106,6 +109,17 @@ export function ShoppingItemForm({ currentUser }: ShoppingItemFormProps) {
                         </div>
                     </div>
 
+                    {/* Image URL */}
+                    <div>
+                        <Label>圖片網址 (Reference Image)</Label>
+                        <Input
+                            value={imageUrl}
+                            onChange={e => setImageUrl(e.target.value)}
+                            className="bg-background border-input"
+                            placeholder="https://..."
+                        />
+                    </div>
+
                     {/* Requested By */}
                     <div>
                         <Label>誰要買 (Requested By)</Label>
@@ -116,7 +130,7 @@ export function ShoppingItemForm({ currentUser }: ShoppingItemFormProps) {
                                     onClick={() => setRequestedBy(u)}
                                     className={cn(
                                         "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all border shrink-0",
-                                        requestedBy === u ? "bg-primary border-primary text-white shadow-[0_0_8px_#FF2E63]" : "bg-white/5 border-white/10 text-muted-foreground"
+                                        requestedBy === u ? "bg-primary border-primary text-white shadow-[0_0_8px_#FF2E63]" : "bg-card border-border text-muted-foreground"
                                     )}
                                 >
                                     {u}
@@ -124,11 +138,10 @@ export function ShoppingItemForm({ currentUser }: ShoppingItemFormProps) {
                             ))}
                         </div>
                     </div>
-
                 </div>
 
                 <DialogFooter className="mt-2">
-                    <Button onClick={handleSubmit} disabled={!name || isSubmitting} className="w-full h-12 text-lg font-bold">
+                    <Button onClick={handleSubmit} disabled={!name || isSubmitting} className="w-full h-12 text-lg font-bold text-white">
                         新增清單
                     </Button>
                 </DialogFooter>

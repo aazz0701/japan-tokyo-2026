@@ -14,10 +14,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-TW" className="dark">
+    <html lang="zh-TW" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#121212" />
+        <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)" />
+        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
       </head>
       <body className="bg-background text-foreground antialiased pb-20 select-none">
@@ -72,7 +73,7 @@ function BottomNav() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-[#121212]/95 backdrop-blur border-t border-white/10 pb-safe z-50">
+    <nav className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-background/95 backdrop-blur border-t border-border pb-safe z-50 transition-colors duration-300">
       <div className="flex justify-around items-center h-16">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
@@ -81,14 +82,14 @@ function BottomNav() {
               key={item.path}
               onClick={() => handleNav(item.path)}
               className={cn(
-                "flex flex-col items-center justify-center w-full h-full space-y-1",
-                isActive ? "text-primary" : "text-muted-foreground"
+                "flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors",
+                isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
               <item.icon
                 className={cn(
                   "w-6 h-6 transition-all duration-300",
-                  isActive && "drop-shadow-[0_0_8px_rgba(255,46,99,0.7)]"
+                  isActive && "filter drop-shadow-[0_0_8px_rgba(255,46,99,0.7)]"
                 )}
               />
               <span className="text-[10px] font-medium">{item.label}</span>

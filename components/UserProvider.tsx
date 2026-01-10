@@ -7,6 +7,8 @@ import { USERS, UserName } from "@/lib/constants";
 interface UserContextType {
     currentUser: UserName | null;
     switchUser: (user: UserName) => void;
+    theme: 'light' | 'dark';
+    toggleTheme: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -16,19 +18,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const pathname = usePathname();
     const [currentUser, setCurrentUser] = useState<UserName | null>(null);
+    const [theme, setTheme] = useState<'light' | 'dark'>('dark');
 
     useEffect(() => {
         const userParam = searchParams.get("u");
         if (userParam && USERS.includes(userParam as UserName)) {
             setCurrentUser(userParam as UserName);
-        } else {
-            // Default to first user or keep null? 
-            // Plan said "Open specific person" so maybe default to null and show selector?
-            // Or persist previous content.
-            // For now, if no user, we might want to prompt or default.
-            // Let's implement switching logic primarily.
         }
     }, [searchParams]);
+
+    // Theme effect
+    useEffect(() => {
+        const root = window.document.documentElement;
+        root.classList.remove('light', 'dark');
+        root.classList.add(theme);
+    }, [theme]);
 
     const switchUser = (user: UserName) => {
         const params = new URLSearchParams(searchParams.toString());
@@ -37,8 +41,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setCurrentUser(user);
     };
 
+    const toggleTheme = () => {
+        setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+    };
+
     return (
-        <UserContext.Provider value={{ currentUser, switchUser }}>
+        <UserContext.Provider value={{ currentUser, switchUser, theme, toggleTheme }}>
             {children}
         </UserContext.Provider>
     );

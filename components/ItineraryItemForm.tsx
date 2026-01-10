@@ -50,21 +50,21 @@ export function ItineraryItemForm({ open, onOpenChange, onSubmit, initialData, m
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[425px] bg-[#1a1a1a] text-white border-white/10">
+            <DialogContent className="sm:max-w-[425px] bg-card text-foreground border-border">
                 <DialogHeader>
                     <DialogTitle>{mode === "add" ? "新增行程" : "編輯行程"}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="category" className="text-right text-gray-400">分類</Label>
+                        <Label htmlFor="category" className="text-right text-muted-foreground">分類</Label>
                         <Select
                             value={formData.category}
                             onValueChange={(val) => handleChange("category", val)}
                         >
-                            <SelectTrigger className="col-span-3 bg-white/5 border-white/10 text-white">
+                            <SelectTrigger className="col-span-3 bg-background border-input text-foreground">
                                 <SelectValue placeholder="選擇分類" />
                             </SelectTrigger>
-                            <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
+                            <SelectContent className="bg-popover border-border text-popover-foreground">
                                 <SelectItem value="景點">景點</SelectItem>
                                 <SelectItem value="用餐">用餐</SelectItem>
                                 <SelectItem value="交通">交通</SelectItem>
@@ -74,79 +74,79 @@ export function ItineraryItemForm({ open, onOpenChange, onSubmit, initialData, m
                     </div>
 
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="startTime" className="text-right text-gray-400">開始時間</Label>
+                        <Label htmlFor="startTime" className="text-right text-muted-foreground">開始時間</Label>
                         <Input
                             id="startTime"
                             type="time"
                             value={formData.startTime || ""}
                             onChange={(e) => handleChange("startTime", e.target.value)}
-                            className="col-span-3 bg-white/5 border-white/10 text-white"
+                            className="col-span-3 bg-background border-input text-foreground"
                         />
                     </div>
 
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="endTime" className="text-right text-gray-400">結束時間</Label>
+                        <Label htmlFor="endTime" className="text-right text-muted-foreground">結束時間</Label>
                         <Input
                             id="endTime"
                             type="time"
                             value={formData.endTime || ""}
                             onChange={(e) => handleChange("endTime", e.target.value)}
-                            className="col-span-3 bg-white/5 border-white/10 text-white"
+                            className="col-span-3 bg-background border-input text-foreground"
                         />
                     </div>
 
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="activity" className="text-right text-gray-400">活動</Label>
+                        <Label htmlFor="activity" className="text-right text-muted-foreground">活動</Label>
                         <Input
                             id="activity"
                             value={formData.activity}
                             onChange={(e) => handleChange("activity", e.target.value)}
-                            className="col-span-3 bg-white/5 border-white/10 text-white"
+                            className="col-span-3 bg-background border-input text-foreground"
                             placeholder="活動名稱"
                             required
                         />
                     </div>
 
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="location" className="text-right text-gray-400">地點</Label>
+                        <Label htmlFor="location" className="text-right text-muted-foreground">地點</Label>
                         <Input
                             id="location"
                             value={formData.location}
                             onChange={(e) => handleChange("location", e.target.value)}
-                            className="col-span-3 bg-white/5 border-white/10 text-white"
+                            className="col-span-3 bg-background border-input text-foreground"
                             placeholder="地點 (Google Maps)"
                         />
                     </div>
 
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="transport" className="text-right text-gray-400">交通</Label>
+                        <Label htmlFor="transport" className="text-right text-muted-foreground">交通</Label>
                         <Input
                             id="transport"
                             value={formData.transport}
                             onChange={(e) => handleChange("transport", e.target.value)}
-                            className="col-span-3 bg-white/5 border-white/10 text-white"
+                            className="col-span-3 bg-background border-input text-foreground"
                             placeholder="交通方式或備註"
                         />
                     </div>
 
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="cost" className="text-right text-gray-400">費用</Label>
+                        <Label htmlFor="cost" className="text-right text-muted-foreground">費用</Label>
                         <Input
                             id="cost"
                             value={formData.cost}
                             onChange={(e) => handleChange("cost", e.target.value)}
-                            className="col-span-3 bg-white/5 border-white/10 text-white"
+                            className="col-span-3 bg-background border-input text-foreground"
                             placeholder="例如: 1000 円"
                         />
                     </div>
 
                     <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="note" className="text-right text-gray-400">備註</Label>
+                        <Label htmlFor="note" className="text-right text-muted-foreground">備註</Label>
                         <Input
                             id="note"
                             value={formData.note}
                             onChange={(e) => handleChange("note", e.target.value)}
-                            className="col-span-3 bg-white/5 border-white/10 text-white"
+                            className="col-span-3 bg-background border-input text-foreground"
                             placeholder="其他說明"
                         />
                     </div>

@@ -63,11 +63,15 @@ export interface HourlyWeatherData {
     temperature_2m: number[];
     weather_code: number[];
     is_day: number[];
+    snowfall: number[];
+    snow_depth: number[];
+    windspeed_10m: number[];
+    apparent_temperature: number[];
 }
 
 export async function fetchHourlyWeather(lat: number, lng: number): Promise<HourlyWeatherData | null> {
     try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,weather_code,is_day&current_weather=true&timezone=Asia%2FTokyo&forecast_days=2`;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=temperature_2m,weather_code,is_day,snowfall,snow_depth,windspeed_10m,apparent_temperature&current_weather=true&timezone=Asia%2FTokyo&forecast_days=2`;
 
         const res = await fetch(url);
         if (!res.ok) throw new Error("Hourly weather fetch failed");
@@ -77,7 +81,11 @@ export async function fetchHourlyWeather(lat: number, lng: number): Promise<Hour
             time: data.hourly.time,
             temperature_2m: data.hourly.temperature_2m,
             weather_code: data.hourly.weather_code,
-            is_day: data.hourly.is_day
+            is_day: data.hourly.is_day,
+            snowfall: data.hourly.snowfall,
+            snow_depth: data.hourly.snow_depth,
+            windspeed_10m: data.hourly.windspeed_10m,
+            apparent_temperature: data.hourly.apparent_temperature
         };
     } catch (error) {
         console.error("Error fetching hourly weather:", error);

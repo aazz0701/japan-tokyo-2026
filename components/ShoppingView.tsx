@@ -61,12 +61,12 @@ export function ShoppingView() {
     return (
         <div className="w-full">
             <Tabs defaultValue="wishlist" className="w-full">
-                <div className="sticky top-0 z-30 bg-[#121212]/95 backdrop-blur pt-14 pb-2 px-4 mb-2 border-b border-white/10">
-                    <TabsList className="grid w-full grid-cols-2 bg-secondary/50">
-                        <TabsTrigger value="wishlist">
+                <div className="sticky top-0 z-30 bg-background/95 backdrop-blur pt-14 pb-2 px-4 mb-2 border-b border-border transition-colors">
+                    <TabsList className="grid w-full grid-cols-2 bg-muted">
+                        <TabsTrigger value="wishlist" className="data-[state=active]:bg-background data-[state=active]:text-foreground text-muted-foreground">
                             想買清單 ({wishlist.length})
                         </TabsTrigger>
-                        <TabsTrigger value="purchased">
+                        <TabsTrigger value="purchased" className="data-[state=active]:bg-background data-[state=active]:text-foreground text-muted-foreground">
                             已購清單 ({purchased.length})
                         </TabsTrigger>
                     </TabsList>
@@ -115,16 +115,22 @@ interface ShoppingCardProps {
 
 function ShoppingCard({ item, onAction, actionLabel, actionIcon: Icon, isPurchased }: ShoppingCardProps) {
     return (
-        <Card className="bg-[#1E1E1E] border-white/5 overflow-hidden">
+        <Card className="bg-card border-border overflow-hidden transition-colors">
             <CardContent className="p-3 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
-                    <ShoppingBag className="w-5 h-5 text-muted-foreground" />
-                </div>
+                {item.referenceImage ? (
+                    <div className="w-16 h-16 rounded-md bg-secondary shrink-0 overflow-hidden border border-border/50">
+                        <img src={item.referenceImage} alt={item.name} className="w-full h-full object-cover" />
+                    </div>
+                ) : (
+                    <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center shrink-0">
+                        <ShoppingBag className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                )}
 
                 <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
-                        <h4 className={cn("font-bold text-white truncate", isPurchased && "line-through text-muted-foreground")}>{item.name}</h4>
-                        <Badge variant="outline" className="text-[10px] border-white/10 shrink-0 ml-2">
+                        <h4 className={cn("font-bold text-foreground truncate", isPurchased && "line-through text-muted-foreground")}>{item.name}</h4>
+                        <Badge variant="outline" className="text-[10px] border-border shrink-0 ml-2">
                             {item.requestedBy}
                         </Badge>
                     </div>
@@ -137,7 +143,7 @@ function ShoppingCard({ item, onAction, actionLabel, actionIcon: Icon, isPurchas
                     size="sm"
                     variant={isPurchased ? "secondary" : "default"}
                     onClick={onAction}
-                    className={cn("shrink-0 h-8 px-2", !isPurchased && "bg-green-600 hover:bg-green-700")}
+                    className={cn("shrink-0 h-8 px-2", !isPurchased && "bg-green-600 hover:bg-green-700 text-white")}
                 >
                     <Icon className="w-4 h-4 mr-1" />
                     <span className="text-xs">{actionLabel}</span>

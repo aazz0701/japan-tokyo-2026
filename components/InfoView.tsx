@@ -1,13 +1,21 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Phone, ExternalLink, MessageCircle } from "lucide-react";
+import { Phone, ExternalLink, MessageCircle, Calculator, Moon, Sun, ArrowRightLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { useUser } from "@/components/UserProvider";
 
 export function InfoView() {
-    // const handleCopy = (text: string) => { ... } // Removed unused function
+    // Currency Converter State
+    const [jpy, setJpy] = useState<string>("");
+    const [rate, setRate] = useState<string>("0.22");
+
+    const twd = jpy ? Math.round(parseInt(jpy) * parseFloat(rate)) : 0;
+    const { theme, toggleTheme } = useUser();
 
     const PHRASES = [
         { jp: "すみません", romaji: "Sumimasen", zh: "不好意思 / 請問" },
@@ -20,32 +28,85 @@ export function InfoView() {
 
     return (
         <div className="px-4 py-6 space-y-6">
-            {/* 1. Emergency */}
+            {/* 0. Settings / Toggle (Moved to ItineraryView Header) */}
+            {/* <div className="flex justify-between items-center bg-muted/60 p-3 rounded-lg border border-border">
+                <span className="text-sm font-medium text-foreground">
+                    {theme === 'dark' ? '深色模式' : '亮色模式'}
+                </span>
+                <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full">
+                    {theme === 'dark' ? <Moon className="w-5 h-5 text-foreground" /> : <Sun className="w-5 h-5 text-yellow-500" />}
+                </Button>
+            </div> */}
+
+            {/* 1. Currency Converter */}
+            <section className="space-y-3">
+                <h2 className="text-xl font-bold flex items-center gap-2 text-primary">
+                    <Calculator className="w-6 h-6" /> 匯率換算
+                </h2>
+                <Card className="bg-card border-border shadow-sm">
+                    <CardContent className="p-4 space-y-4">
+                        <div className="grid grid-cols-[1fr,auto,1fr] gap-2 items-end">
+                            <div className="space-y-1.5">
+                                <label className="text-xs text-muted-foreground font-medium pl-1">日幣 (JPY)</label>
+                                <Input
+                                    type="number"
+                                    value={jpy}
+                                    onChange={(e) => setJpy(e.target.value)}
+                                    placeholder="¥"
+                                    className="text-lg font-bold bg-background"
+                                />
+                            </div>
+                            <div className="pb-2 text-muted-foreground">
+                                <ArrowRightLeft className="w-5 h-5" />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-xs text-muted-foreground font-medium pl-1">台幣 (TWD)</label>
+                                <div className="flex items-center h-10 px-3 rounded-md border border-input bg-muted/50 text-xl font-black text-primary">
+                                    ${twd}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground justify-end">
+                            <span>匯率:</span>
+                            <Input
+                                type="number"
+                                value={rate}
+                                onChange={(e) => setRate(e.target.value)}
+                                className="w-16 h-6 text-xs text-right p-1 bg-background"
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+            </section>
+
+            <Separator className="bg-border" />
+
+            {/* 2. Emergency */}
             <section className="space-y-3">
                 <h2 className="text-xl font-bold flex items-center gap-2 text-primary">
                     <Phone className="w-6 h-6" /> 緊急聯絡
                 </h2>
                 <div className="grid grid-cols-2 gap-3">
-                    <Card className="bg-red-950/30 border-red-900/50">
+                    <Card className="bg-red-500/10 dark:bg-red-950/30 border-red-200 dark:border-red-900/50">
                         <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                            <div className="text-3xl font-black text-white mb-1">110</div>
-                            <div className="text-xs text-red-200">警察局 (Police)</div>
+                            <div className="text-3xl font-black text-foreground mb-1">110</div>
+                            <div className="text-xs text-muted-foreground">警察局 (Police)</div>
                         </CardContent>
                     </Card>
-                    <Card className="bg-red-950/30 border-red-900/50">
+                    <Card className="bg-red-500/10 dark:bg-red-950/30 border-red-200 dark:border-red-900/50">
                         <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                            <div className="text-3xl font-black text-white mb-1">119</div>
-                            <div className="text-xs text-red-200">救護車 / 火警</div>
+                            <div className="text-3xl font-black text-foreground mb-1">119</div>
+                            <div className="text-xs text-muted-foreground">救護車 / 火警</div>
                         </CardContent>
                     </Card>
                 </div>
-                <Button variant="outline" className="w-full border-white/10 h-12" onClick={() => window.open("https://www.boca.gov.tw/cp-87-212-6831d-1.html", "_blank")}>
+                <Button variant="outline" className="w-full border-border h-12" onClick={() => window.open("https://www.boca.gov.tw/cp-87-212-6831d-1.html", "_blank")}>
                     <ExternalLink className="w-4 h-4 mr-2" />
                     旅外國人急難救助 (日本)
                 </Button>
             </section>
 
-            <Separator className="bg-white/10" />
+            <Separator className="bg-border" />
 
             {/* 2. Phrases */}
             <section className="space-y-3">
@@ -54,12 +115,12 @@ export function InfoView() {
                 </h2>
                 <div className="grid gap-2">
                     {PHRASES.map((p, i) => (
-                        <Card key={i} className="bg-[#1E1E1E] border-white/5 active:bg-white/5 transition-colors cursor-pointer" onClick={() => {
+                        <Card key={i} className="bg-card border-border active:bg-muted transition-colors cursor-pointer" onClick={() => {
                             // Potential TTS feature here
                         }}>
                             <CardContent className="p-3 flex justify-between items-center">
                                 <div>
-                                    <div className="font-bold text-lg text-white mb-0.5">{p.jp}</div>
+                                    <div className="font-bold text-lg text-foreground mb-0.5">{p.jp}</div>
                                     <div className="text-xs text-muted-foreground">{p.romaji}</div>
                                 </div>
                                 <Badge variant="outline" className="text-xs border-primary/30 text-primary">
