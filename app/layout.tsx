@@ -58,6 +58,9 @@ function BottomNav() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // Hide bottom nav on detail page
+  if (pathname?.startsWith("/itinerary/detail")) return null;
+
   const navItems = [
     { label: "行程", icon: Calendar, path: "/" },
     { label: "記帳", icon: CreditCard, path: "/accounting" },

@@ -298,6 +298,8 @@ export function ItineraryView() {
                                     <ItineraryCard
                                         key={idx}
                                         item={item}
+                                        dayId={day.id}
+                                        index={idx}
                                         onEdit={isEditMode ? () => setEditingItem({ item, index: idx }) : undefined}
                                         onDelete={isEditMode ? () => handleDeleteClick(idx) : undefined}
                                     />
