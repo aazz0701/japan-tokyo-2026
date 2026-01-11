@@ -81,14 +81,31 @@ export function ItineraryCard({ item, dayId, index, onEdit, onDelete }: Itinerar
                     </h3>
 
                     {/* Edit/Delete Actions */}
-                    <div className="absolute top-3 right-3 flex gap-2">
+                    <div className="absolute top-3 right-3 flex gap-2" onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }}>
                         {onEdit && (
-                            <button onClick={onEdit} className="text-muted-foreground hover:text-foreground transition-colors">
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onEdit();
+                                }}
+                                className="text-muted-foreground hover:text-foreground transition-colors p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded-full"
+                            >
                                 <Pencil className="w-3.5 h-3.5" />
                             </button>
                         )}
                         {onDelete && (
-                            <button onClick={onDelete} className="text-muted-foreground hover:text-red-500 transition-colors">
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onDelete();
+                                }}
+                                className="text-muted-foreground hover:text-red-500 transition-colors p-1 hover:bg-black/10 dark:hover:bg-white/10 rounded-full"
+                            >
                                 <Trash2 className="w-3.5 h-3.5" />
                             </button>
                         )}
@@ -116,6 +133,27 @@ export function ItineraryCard({ item, dayId, index, onEdit, onDelete }: Itinerar
                                 <span className="text-yellow-600 dark:text-yellow-500/80 font-medium">{item.note}</span>
                             </div>
                         )}
+                        {/* Indicators for detailed content */}
+                        <div className="flex gap-3 mt-1 pt-1 opacity-60">
+                            {item.description && (
+                                <div className="flex items-center gap-1" title="有詳細描述">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M16 13H8" /><path d="M16 17H8" /><path d="M10 9H8" /></svg>
+                                    <span>詳細</span>
+                                </div>
+                            )}
+                            {item.transportation && item.transportation.length > 0 && (
+                                <div className="flex items-center gap-1" title="有交通資訊">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>
+                                    <span>交通</span>
+                                </div>
+                            )}
+                            {item.links && item.links.length > 0 && (
+                                <div className="flex items-center gap-1" title="有參考連結">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
+                                    <span>連結</span>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </CardContent>
             </Card>

@@ -221,22 +221,38 @@ export function ItineraryDetailView() {
                     </div>
                 </div>
 
-                {/* Location Map Placeholder */}
+                {/* Location Map Styled Card */}
                 <div className="space-y-3">
                     <h3 className="font-bold text-lg flex items-center gap-2">
                         <MapPin className="w-5 h-5 text-primary" /> 地點
                     </h3>
-                    <div className="relative w-full aspect-video rounded-xl bg-secondary overflow-hidden border border-border group">
-                        {/* Interactive Map Link Overlay */}
-                        <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <Button className="bg-primary hover:bg-primary/90 text-white rounded-full shadow-lg scale-100 group-hover:scale-110 transition-transform">
-                                <Globe className="w-4 h-4 mr-2" /> 開啟地圖
-                            </Button>
+                    <div className="rounded-2xl overflow-hidden border border-border shadow-md bg-white dark:bg-stone-900 transition-colors duration-300">
+                        {/* Map Visual Area */}
+                        <div className="relative h-48 w-full bg-stone-100 dark:bg-stone-800 group cursor-pointer overflow-hidden">
+                            {/* Map Logic: Attempt to load OSM Embed if we can get coords, otherwise fall back to pattern */}
+                            <MapPreview location={item.location} address={item.address} theme={theme} />
+
+                            {/* Overlay for Click-to-Open Action (intercepts clicks on the iframe if we want to force opening GMap app, but let's allow interaction or overlay it) */}
+                            {/* We put a transparent overlay to prevent scrolling the map but allow clicking to open external */}
+                            {/* <div
+                                className="absolute inset-0 bg-transparent z-10"
+                                onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location)}`, "_blank")}
+                            /> */}
                         </div>
-                        <div className="absolute bottom-3 left-3 right-3">
-                            <div className="text-white font-bold text-sm shadow-black drop-shadow-md">{item.location}</div>
-                            <div className="text-white/80 text-xs truncate">{item.address || item.location}</div>
+
+                        {/* Bottom Info Bar */}
+                        <div className="p-4 flex items-center justify-between bg-white dark:bg-stone-950 text-foreground dark:text-white transition-colors duration-300">
+                            <div className="flex-1 mr-4 overflow-hidden">
+                                <h4 className="font-bold text-lg truncate leading-tight text-foreground dark:text-white">{item.location}</h4>
+                                <p className="text-muted-foreground dark:text-zinc-400 text-xs mt-1 truncate">{item.address || item.location}</p>
+                            </div>
+                            <Button
+                                onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location)}`, "_blank")}
+                                className="bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl px-4 h-10 shadow-lg shadow-rose-500/20 dark:shadow-rose-900/20"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+                                開啟地圖
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -304,6 +320,44 @@ export function ItineraryDetailView() {
                     </Button>
                 </div>
             )}
+        </div>
+    );
+}
+
+function MapPreview({ location, address, theme }: { location: string, address?: string, theme?: string }) {
+    // Robust fallback: Google Maps Embed (Legacy/Public Iframe)
+    const query = address || location;
+
+    if (!query) return <div className="bg-stone-100 dark:bg-stone-800 w-full h-full" />;
+
+    const isDark = theme === 'dark';
+
+    return (
+        <div className="w-full h-full relative">
+            <iframe
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                scrolling="no"
+                marginHeight={0}
+                marginWidth={0}
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=m&z=15&output=embed&iwloc=near`}
+                // Apply invert filters ONLY in dark mode
+                className={cn(
+                    "pointer-events-none transition-all duration-500",
+                    isDark ? "grayscale-[30%] invert-[85%] contrast-125" : "grayscale-0 invert-0 contrast-100 mix-blend-multiply opacity-90"
+                )}
+                style={{ pointerEvents: 'none' }}
+                title="Map Preview"
+            />
+            <div className="absolute inset-0 flex items-center justify-center pb-4 pointer-events-none">
+                <div className="relative bottom-4">
+                    {/* Pin Animation */}
+                    {/* <div className="w-4 h-4 rounded-full bg-red-500/50 animate-ping absolute -bottom-1 left-1/2 -translate-x-1/2" /> */}
+                    <MapPin className="w-10 h-10 text-rose-500 fill-rose-500/20 drop-shadow-xl relative z-10 bottom-4" />
+                    <div className="w-2 h-1 bg-black/30 dark:bg-black/50 rounded-full blur-[2px] absolute bottom-4 left-1/2 -translate-x-1/2" />
+                </div>
+            </div>
         </div>
     );
 }
