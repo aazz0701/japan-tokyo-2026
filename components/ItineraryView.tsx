@@ -29,6 +29,22 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    DragEndEvent
+} from '@dnd-kit/core';
+import {
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { SortableItineraryCard } from './SortableItineraryCard';
 
 interface Accommodation {
     name: string;
@@ -63,12 +79,23 @@ export function ItineraryView() {
     const [weather, setWeather] = useState<WeatherData | null>(null);
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<{ item: ItineraryItem, index: number } | null>(null);
-    const [isEditMode, setIsEditMode] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<number | null>(null);
     const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
-    const { theme, toggleTheme, isAdmin } = useUser();
+    const { theme, toggleTheme, isAdmin, isEditMode, toggleEditMode } = useUser();
+
+    // Setup DnD Sensors
+    const sensors = useSensors(
+        useSensor(PointerSensor, {
+            activationConstraint: {
+                distance: 8,
+            },
+        }),
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        })
+    );
 
     // Sync URL when tab changes
     const handleTabChange = (value: string) => {
@@ -86,17 +113,21 @@ export function ItineraryView() {
         }
     }, [searchParams]);
 
-    // Reset edit mode if not admin
+    // Reset edit mode if not admin (safety check)
     useEffect(() => {
-        if (!isAdmin) {
-            setIsEditMode(false);
+        if (!isAdmin && isEditMode) {
+            toggleEditMode();
         }
     }, [isAdmin]);
 
     const handleAddItem = async (item: ItineraryItem) => {
         const currentDay = days.find(d => d.id === activeTab);
         if (!currentDay) return;
-        const newItems = [...currentDay.items, item];
+
+        // Ensure new item has an ID
+        const newItem = { ...item, id: item.id || crypto.randomUUID() };
+
+        const newItems = [...currentDay.items, newItem];
         try {
             await updateDoc(doc(db, "itinerary", currentDay.id), { items: newItems });
         } catch (error) {
@@ -111,7 +142,8 @@ export function ItineraryView() {
         if (!currentDay) return;
 
         const newItems = [...currentDay.items];
-        newItems[editingItem.index] = updatedItem;
+        // Ensure ID is preserved or added
+        newItems[editingItem.index] = { ...updatedItem, id: updatedItem.id || currentDay.items[editingItem.index].id || crypto.randomUUID() };
 
         try {
             await updateDoc(doc(db, "itinerary", currentDay.id), { items: newItems });
@@ -144,6 +176,34 @@ export function ItineraryView() {
         } finally {
             setDeleteAlertOpen(false);
             setItemToDelete(null);
+        }
+    };
+
+    const handleDragEnd = async (event: DragEndEvent, dayId: string) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+
+        const currentDay = days.find(d => d.id === dayId);
+        if (!currentDay) return;
+
+        // Find indexes based on ID
+        const oldIndex = currentDay.items.findIndex(i => i.id === active.id);
+        const newIndex = currentDay.items.findIndex(i => i.id === over.id);
+
+        if (oldIndex === -1 || newIndex === -1) return;
+
+        const newItems = arrayMove(currentDay.items, oldIndex, newIndex);
+
+        // Optimistic UI Update
+        setDays(prev => prev.map(d => d.id === dayId ? { ...d, items: newItems } : d));
+
+        // Firestore Update
+        try {
+            await updateDoc(doc(db, "itinerary", dayId), { items: newItems });
+        } catch (error) {
+            console.error("Error reordering items:", error);
+            // Revert on error (optional, simplified here)
+            alert("排序更新失敗");
         }
     };
 
@@ -181,7 +241,13 @@ export function ItineraryView() {
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const fetchedDays: DayData[] = [];
             snapshot.forEach((doc) => {
-                fetchedDays.push({ id: doc.id, ...doc.data() } as DayData);
+                const data = doc.data() as Omit<DayData, 'id'>;
+                // Ensure all items have IDs for drag and drop
+                const itemsWithIds = (data.items || []).map(item => ({
+                    ...item,
+                    id: item.id || crypto.randomUUID() // Assign temporary ID if missing
+                }));
+                fetchedDays.push({ id: doc.id, ...data, items: itemsWithIds });
             });
 
             // Sort by dayNumber
@@ -316,17 +382,30 @@ export function ItineraryView() {
                             )}
 
                             <div className="">
-                                {day.items.map((item, idx) => (
-                                    <ItineraryCard
-                                        key={idx}
-                                        item={item}
-                                        dayId={day.id}
-                                        index={idx}
-                                        isLast={idx === day.items.length - 1}
-                                        onEdit={isEditMode ? () => setEditingItem({ item, index: idx }) : undefined}
-                                        onDelete={isEditMode ? () => handleDeleteClick(idx) : undefined}
-                                    />
-                                ))}
+                                <DndContext
+                                    sensors={sensors}
+                                    collisionDetection={closestCenter}
+                                    onDragEnd={(event) => handleDragEnd(event, day.id)}
+                                >
+                                    <SortableContext
+                                        items={day.items.map(i => i.id!)}
+                                        strategy={verticalListSortingStrategy}
+                                    >
+                                        {day.items.map((item, idx) => (
+                                            <SortableItineraryCard
+                                                key={item.id} // Use ID as key for sortable
+                                                id={item.id!}
+                                                item={item}
+                                                dayId={day.id}
+                                                index={idx}
+                                                isLast={idx === day.items.length - 1}
+                                                isEditMode={isEditMode}
+                                                onEdit={isEditMode ? () => setEditingItem({ item, index: idx }) : undefined}
+                                                onDelete={isEditMode ? () => handleDeleteClick(idx) : undefined}
+                                            />
+                                        ))}
+                                    </SortableContext>
+                                </DndContext>
                             </div>
 
                             <div className="h-20" /> {/* Spacer for footer */}
@@ -359,7 +438,7 @@ export function ItineraryView() {
                             <Switch
                                 id="edit-mode"
                                 checked={isEditMode}
-                                onCheckedChange={setIsEditMode}
+                                onCheckedChange={toggleEditMode}
                             />
                         </div>
                         <p className="text-xs text-muted-foreground mt-2">

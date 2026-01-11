@@ -9,7 +9,8 @@ interface UserContextType {
     switchUser: (user: UserName) => void;
     theme: 'light' | 'dark';
     toggleTheme: () => void;
-    isAdmin: boolean;
+    isEditMode: boolean;
+    toggleEditMode: () => void;
     login: (password: string) => boolean;
     logout: () => void;
 }
@@ -23,6 +24,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const [currentUser, setCurrentUser] = useState<UserName | null>(null);
     const [theme, setTheme] = useState<'light' | 'dark'>('dark');
     const [isAdmin, setIsAdmin] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
 
     useEffect(() => {
         const userParam = searchParams.get("u");
@@ -34,6 +36,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         const adminSession = localStorage.getItem("tokyo2026_admin");
         if (adminSession === "true") {
             setIsAdmin(true);
+        }
+
+        // Restore edit mode
+        const editSession = localStorage.getItem("tokyo2026_edit_mode");
+        if (editSession === "true") {
+            setIsEditMode(true);
         }
     }, [searchParams]);
 
@@ -55,6 +63,18 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setTheme(prev => prev === 'dark' ? 'light' : 'dark');
     };
 
+    const toggleEditMode = () => {
+        setIsEditMode(prev => {
+            const next = !prev;
+            if (next) {
+                localStorage.setItem("tokyo2026_edit_mode", "true");
+            } else {
+                localStorage.removeItem("tokyo2026_edit_mode");
+            }
+            return next;
+        });
+    };
+
     const login = (password: string) => {
         if (password === "2026") {
             setIsAdmin(true);
@@ -66,11 +86,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     const logout = () => {
         setIsAdmin(false);
+        setIsEditMode(false);
         localStorage.removeItem("tokyo2026_admin");
+        localStorage.removeItem("tokyo2026_edit_mode");
     };
 
     return (
-        <UserContext.Provider value={{ currentUser, switchUser, theme, toggleTheme, isAdmin, login, logout }}>
+        <UserContext.Provider value={{ currentUser, switchUser, theme, toggleTheme, isAdmin, isEditMode, toggleEditMode, login, logout }}>
             {children}
         </UserContext.Provider>
     );

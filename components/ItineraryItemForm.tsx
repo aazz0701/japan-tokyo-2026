@@ -98,8 +98,8 @@ export function ItineraryItemForm({ open, onOpenChange, onSubmit, initialData, m
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="flex-1 overflow-hidden flex flex-col">
-                    <ScrollArea className="flex-1 p-6 pt-2">
-                        <div className="space-y-6">
+                    <ScrollArea className="flex-1">
+                        <div className="space-y-6 p-6 pt-2">
 
                             {/* Section 1: Basic Info */}
                             <div className="space-y-4">

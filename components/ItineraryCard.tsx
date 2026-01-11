@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-    MapPin, Navigation, Pencil, Trash2,
+    MapPin, Navigation, Pencil, Trash2, Eye,
     Train, Camera, Utensils, ShoppingBag, BedDouble, Footprints,
     Bus, Plane, Circle
 } from "lucide-react";
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 export interface ItineraryItem {
+    id?: string;
     timeRange?: string; // Deprecated
     startTime?: string;
     endTime?: string;
@@ -136,6 +137,93 @@ export function ItineraryCard({ item, dayId, index, isLast, onEdit, onDelete }: 
         action?.();
     };
 
+    const cardContent = (
+        <Card className={cn(
+            "overflow-hidden transition-all hover:shadow-lg relative",
+            // Light Mode: White bg, stronger border (zinc-300), stronger shadow
+            "bg-white border border-zinc-300 shadow-md",
+            // Dark Mode: Deep gray bg, borderless or subtle border, white text
+            "dark:bg-[#1A1A1A] dark:border-white/5 dark:shadow-none",
+            styles.cardBorder
+        )}>
+            {/* Transport Blue Bar Indicator (replaces border-l for cleaner look if desired, but sticking to design) */}
+            {/* We use border-l on the Card above for the accent color */}
+
+            <CardContent className="p-4">
+                <div className="flex justify-between items-start gap-4">
+                    <div className="space-y-2 flex-1 min-w-0">
+                        {/* Category Badge for General Items */}
+                        {styles.type !== 'transport' && (
+                            <Badge variant="secondary" className={cn("text-[10px] px-2 py-0.5 h-auto font-medium mb-1 border-0 rounded-md", styles.badgeBg, styles.color)}>
+                                {item.category || "景點"}
+                            </Badge>
+                        )}
+
+                        {/* Title */}
+                        <h3 className={cn(
+                            "font-bold text-lg leading-snug tracking-tight transition-colors",
+                            "text-zinc-900 dark:text-zinc-100" // Stronger contrast
+                        )}>
+                            {item.activity}
+                        </h3>
+
+                        {/* Description / Note */}
+                        {(item.description || item.note) && (
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed">
+                                {item.description || item.note}
+                            </p>
+                        )}
+
+                        {/* Location for Transport */}
+                        {item.location && styles.type === 'transport' && (
+                            <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                                <MapPin className="w-3.5 h-3.5" />
+                                {item.location}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Thumbnail for General Items */}
+                    {styles.type !== 'transport' && (item.coverImage || (item.images && item.images.length > 0)) && (
+                        <div className="w-20 h-20 rounded-lg bg-zinc-100 dark:bg-zinc-800 shrink-0 overflow-hidden border border-zinc-100 dark:border-white/10 shadow-sm relative group-hover:ring-2 ring-primary/20 transition-all">
+                            <img
+                                src={item.coverImage || item.images![0]}
+                                alt={item.activity}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            />
+                        </div>
+                    )}
+                </div>
+
+                {/* Administration Actions Overlay (Edit/Delete) */}
+                {(onEdit || onDelete) && (
+                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-black/60 backdrop-blur-sm rounded-full p-1 border border-zinc-200 dark:border-white/10 z-20 shadow-sm">
+                        {/* View Details Button */}
+                        <Link
+                            href={detailUrl}
+                            onClick={(e) => e.stopPropagation()} // Prevent triggering drag or other parents
+                            className="p-1.5 hover:bg-zinc-100 dark:hover:bg-white/20 rounded-full text-zinc-600 dark:text-white/80 hover:text-blue-500 dark:hover:text-blue-400 transition-colors flex items-center justify-center"
+                            title="查看詳細"
+                        >
+                            <Eye className="w-3.5 h-3.5" />
+                        </Link>
+
+                        {onEdit && (
+                            <button onClick={(e) => handleAction(e, onEdit)} className="p-1.5 hover:bg-zinc-100 dark:hover:bg-white/20 rounded-full text-zinc-600 dark:text-white/80 hover:text-primary dark:hover:text-white transition-colors">
+                                <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                        )}
+                        {onDelete && (
+                            <button onClick={(e) => handleAction(e, onDelete)} className="p-1.5 hover:bg-red-5 dark:hover:bg-red-500/20 rounded-full text-zinc-400 dark:text-white/60 hover:text-red-500 dark:hover:text-red-400 transition-colors">
+                                <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                        )}
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+
     return (
         <div className="flex gap-4 relative group mb-6 pb-0">
             {/* 1. Timeline Rail */}
@@ -165,83 +253,15 @@ export function ItineraryCard({ item, dayId, index, isLast, onEdit, onDelete }: 
                     {item.duration && <span className="text-xs text-muted-foreground font-normal opacity-80">• {item.duration}</span>}
                 </div>
 
-                <Link href={detailUrl} className="block active:scale-[0.99] transition-transform">
-                    {/* Different Layout for Transport vs General */}
-                    <Card className={cn(
-                        "overflow-hidden transition-all hover:shadow-lg relative",
-                        // Light Mode: White bg, stronger border (zinc-300), stronger shadow
-                        "bg-white border border-zinc-300 shadow-md",
-                        // Dark Mode: Deep gray bg, borderless or subtle border, white text
-                        "dark:bg-[#1A1A1A] dark:border-white/5 dark:shadow-none",
-                        styles.cardBorder
-                    )}>
-                        {/* Transport Blue Bar Indicator (replaces border-l for cleaner look if desired, but sticking to design) */}
-                        {/* We use border-l on the Card above for the accent color */}
-
-                        <CardContent className="p-4">
-                            <div className="flex justify-between items-start gap-4">
-                                <div className="space-y-2 flex-1 min-w-0">
-                                    {/* Category Badge for General Items */}
-                                    {styles.type !== 'transport' && (
-                                        <Badge variant="secondary" className={cn("text-[10px] px-2 py-0.5 h-auto font-medium mb-1 border-0 rounded-md", styles.badgeBg, styles.color)}>
-                                            {item.category || "景點"}
-                                        </Badge>
-                                    )}
-
-                                    {/* Title */}
-                                    <h3 className={cn(
-                                        "font-bold text-lg leading-snug tracking-tight transition-colors",
-                                        "text-zinc-900 dark:text-zinc-100" // Stronger contrast
-                                    )}>
-                                        {item.activity}
-                                    </h3>
-
-                                    {/* Description / Note */}
-                                    {(item.description || item.note) && (
-                                        <p className="text-sm text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed">
-                                            {item.description || item.note}
-                                        </p>
-                                    )}
-
-                                    {/* Location for Transport */}
-                                    {item.location && styles.type === 'transport' && (
-                                        <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-                                            <MapPin className="w-3.5 h-3.5" />
-                                            {item.location}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Thumbnail for General Items */}
-                                {styles.type !== 'transport' && (item.coverImage || (item.images && item.images.length > 0)) && (
-                                    <div className="w-20 h-20 rounded-lg bg-zinc-100 dark:bg-zinc-800 shrink-0 overflow-hidden border border-zinc-100 dark:border-white/10 shadow-sm relative group-hover:ring-2 ring-primary/20 transition-all">
-                                        <img
-                                            src={item.coverImage || item.images![0]}
-                                            alt={item.activity}
-                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                        />
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Administration Actions Overlay (Edit/Delete) */}
-                            {(onEdit || onDelete) && (
-                                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 dark:bg-black/60 backdrop-blur-sm rounded-full p-1 border border-zinc-200 dark:border-white/10 z-20 shadow-sm">
-                                    {onEdit && (
-                                        <button onClick={(e) => handleAction(e, onEdit)} className="p-1.5 hover:bg-zinc-100 dark:hover:bg-white/20 rounded-full text-zinc-600 dark:text-white/80 hover:text-primary dark:hover:text-white transition-colors">
-                                            <Pencil className="w-3.5 h-3.5" />
-                                        </button>
-                                    )}
-                                    {onDelete && (
-                                        <button onClick={(e) => handleAction(e, onDelete)} className="p-1.5 hover:bg-red-5 dark:hover:bg-red-500/20 rounded-full text-zinc-400 dark:text-white/60 hover:text-red-500 dark:hover:text-red-400 transition-colors">
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </Link>
+                {onEdit ? (
+                    <div className="block active:scale-[0.99] transition-transform cursor-grab active:cursor-grabbing">
+                        {cardContent}
+                    </div>
+                ) : (
+                    <Link href={detailUrl} className="block active:scale-[0.99] transition-transform">
+                        {cardContent}
+                    </Link>
+                )}
             </div>
         </div>
     );
