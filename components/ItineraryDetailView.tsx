@@ -22,7 +22,7 @@ export function ItineraryDetailView() {
     const [loading, setLoading] = useState(true);
     const [dayDate, setDayDate] = useState<string>("");
 
-    const { theme } = useUser();
+    const { theme, isAdmin } = useUser();
 
     useEffect(() => {
         const fetchItem = async () => {
@@ -168,7 +168,6 @@ export function ItineraryDetailView() {
                 </div>
 
                 {/* Transportation - Timeline Style */}
-                {/* Assuming data structure or defaulting to mockup style */}
                 <div className="space-y-3">
                     <h3 className="font-bold text-lg flex items-center gap-2">
                         <Navigation className="w-5 h-5 text-primary" /> 交通方式
@@ -290,19 +289,21 @@ export function ItineraryDetailView() {
             </div>
 
             {/* Bottom Actions */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-xl border-t border-border z-50 flex gap-3 pb-8">
-                <Button
-                    variant="outline"
-                    className="flex-1 h-12 rounded-xl border-primary/20 hover:bg-primary/5 text-primary font-bold"
-                >
-                    <CheckCircle2 className="w-5 h-5 mr-2" /> 標記完成
-                </Button>
-                <Button
-                    className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold shadow-lg shadow-primary/25"
-                >
-                    <PlusCircle className="w-5 h-5 mr-2" /> 新增支出
-                </Button>
-            </div>
+            {isAdmin && (
+                <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-xl border-t border-border z-50 flex gap-3 pb-8">
+                    <Button
+                        variant="outline"
+                        className="flex-1 h-12 rounded-xl border-primary/20 hover:bg-primary/5 text-primary font-bold"
+                    >
+                        <CheckCircle2 className="w-5 h-5 mr-2" /> 標記完成
+                    </Button>
+                    <Button
+                        className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold shadow-lg shadow-primary/25"
+                    >
+                        <PlusCircle className="w-5 h-5 mr-2" /> 新增支出
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }

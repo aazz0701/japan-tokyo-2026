@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { USERS } from "@/lib/constants";
 
 export function AccountingView() {
-    const { currentUser } = useUser();
+    const { currentUser, isAdmin } = useUser();
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -117,12 +117,14 @@ export function AccountingView() {
                                 </div>
 
                                 {/* Delete Action (visible on hover or swipe - keep distinct) */}
-                                <button
-                                    onClick={() => ex.id && handleDelete(ex.id)}
-                                    className="absolute right-0 top-0 bottom-0 w-12 bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm"
-                                >
-                                    <Trash2 className="w-5 h-5" />
-                                </button>
+                                {isAdmin && (
+                                    <button
+                                        onClick={() => ex.id && handleDelete(ex.id)}
+                                        className="absolute right-0 top-0 bottom-0 w-12 bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                )}
                             </CardContent>
                         </Card>
                     ))
@@ -130,7 +132,7 @@ export function AccountingView() {
             </div>
 
             {/* FAB */}
-            <ExpenseForm currentUser={currentUser} />
+            {isAdmin && <ExpenseForm currentUser={currentUser} />}
         </div>
     );
 }

@@ -3,16 +3,23 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Phone, ExternalLink, MessageCircle, Calculator, ArrowRightLeft, TrainFront, Map } from "lucide-react";
+import { Phone, ExternalLink, MessageCircle, Calculator, ArrowRightLeft, TrainFront, Map, Lock, LogOut } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { useUser } from "@/components/UserProvider";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 
 export function InfoView() {
     // Currency Converter State
     const [jpy, setJpy] = useState<string>("");
     const [rate, setRate] = useState<string>("0.22");
+
+    // Login State
+    const { isAdmin, login, logout } = useUser();
+    const [showLogin, setShowLogin] = useState(false);
+    const [password, setPassword] = useState("");
+    const [tapCount, setTapCount] = useState(0);
 
     const twd = jpy ? Math.round(parseInt(jpy) * parseFloat(rate)) : 0;
     // const { theme, toggleTheme } = useUser(); // Moved to ItineraryView
@@ -26,8 +33,43 @@ export function InfoView() {
         { jp: "袋はいりません", romaji: "Fukuro wa irimasen", zh: "不用袋子" },
     ];
 
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (tapCount > 0) {
+            timer = setTimeout(() => setTapCount(0), 1000);
+        }
+        if (tapCount >= 5) {
+            setShowLogin(true);
+            setTapCount(0);
+        }
+        return () => clearTimeout(timer);
+    }, [tapCount]);
+
+    const handleLogin = () => {
+        if (login(password)) {
+            setShowLogin(false);
+            setPassword("");
+            // alert("Logged in as Admin");
+        } else {
+            alert("密碼錯誤");
+        }
+    };
+
     return (
         <div className="px-4 py-6 space-y-6">
+            {/* Admin Status Header (Visible only when admin) */}
+            {isAdmin && (
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 flex justify-between items-center animate-in fade-in slide-in-from-top-2">
+                    <div className="flex items-center gap-2 text-primary font-bold text-sm">
+                        <Lock className="w-4 h-4" />
+                        管理員模式已啟用
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={logout} className="h-8 text-muted-foreground hover:text-destructive">
+                        <LogOut className="w-4 h-4 mr-1" /> 登出
+                    </Button>
+                </div>
+            )}
+
             {/* 0. Settings / Toggle (Moved to ItineraryView Header) */}
             {/* <div className="flex justify-between items-center bg-muted/60 p-3 rounded-lg border border-border">
                 <span className="text-sm font-medium text-foreground">
@@ -159,9 +201,38 @@ export function InfoView() {
                 </div>
             </section>
 
-            <div className="text-center text-xs text-muted-foreground pt-10 pb-4 opacity-50">
+            <div
+                className="text-center text-xs text-muted-foreground pt-10 pb-4 opacity-50 select-none active:text-primary active:opacity-100 transition-all"
+                onClick={() => setTapCount(c => c + 1)}
+            >
                 Tokyo Trip 2026 PWA v1.0
             </div>
+
+            <Dialog open={showLogin} onOpenChange={setShowLogin}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>管理員登入</DialogTitle>
+                        <DialogDescription>
+                            請輸入管理密碼以啟用編輯權限
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <Input
+                            type="password"
+                            placeholder="PIN Code"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="text-center text-2xl tracking-widest"
+                            maxLength={4}
+                            inputMode="numeric"
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowLogin(false)}>取消</Button>
+                        <Button onClick={handleLogin}>登入</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

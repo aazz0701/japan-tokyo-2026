@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 export function ShoppingView() {
-    const { currentUser } = useUser();
+    const { currentUser, isAdmin } = useUser();
     const [items, setItems] = useState<ShoppingItem[]>([]);
 
     useEffect(() => {
@@ -81,6 +81,7 @@ export function ShoppingView() {
                             onAction={() => handleMarkPurchased(item)}
                             actionLabel="買到了"
                             actionIcon={Check}
+                            isAdmin={isAdmin}
                         />
                     ))}
                 </TabsContent>
@@ -95,11 +96,12 @@ export function ShoppingView() {
                             actionLabel="放回清單"
                             actionIcon={ArrowRightLeft}
                             isPurchased
+                            isAdmin={isAdmin}
                         />
                     ))}
                 </TabsContent>
 
-                <ShoppingItemForm currentUser={currentUser} />
+                {isAdmin && <ShoppingItemForm currentUser={currentUser} />}
             </Tabs>
         </div>
     );
@@ -111,9 +113,10 @@ interface ShoppingCardProps {
     actionLabel: string;
     actionIcon: React.ElementType;
     isPurchased?: boolean;
+    isAdmin?: boolean;
 }
 
-function ShoppingCard({ item, onAction, actionLabel, actionIcon: Icon, isPurchased }: ShoppingCardProps) {
+function ShoppingCard({ item, onAction, actionLabel, actionIcon: Icon, isPurchased, isAdmin }: ShoppingCardProps) {
     return (
         <Card className="bg-card border-border overflow-hidden transition-colors">
             <CardContent className="p-3 flex items-center gap-3">
@@ -139,15 +142,17 @@ function ShoppingCard({ item, onAction, actionLabel, actionIcon: Icon, isPurchas
                     </div>
                 </div>
 
-                <Button
-                    size="sm"
-                    variant={isPurchased ? "secondary" : "default"}
-                    onClick={onAction}
-                    className={cn("shrink-0 h-8 px-2", !isPurchased && "bg-green-600 hover:bg-green-700 text-white")}
-                >
-                    <Icon className="w-4 h-4 mr-1" />
-                    <span className="text-xs">{actionLabel}</span>
-                </Button>
+                {isAdmin && (
+                    <Button
+                        size="sm"
+                        variant={isPurchased ? "secondary" : "default"}
+                        onClick={onAction}
+                        className={cn("shrink-0 h-8 px-2", !isPurchased && "bg-green-600 hover:bg-green-700 text-white")}
+                    >
+                        <Icon className="w-4 h-4 mr-1" />
+                        <span className="text-xs">{actionLabel}</span>
+                    </Button>
+                )}
             </CardContent>
         </Card>
     );

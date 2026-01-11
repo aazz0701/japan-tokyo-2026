@@ -9,6 +9,9 @@ interface UserContextType {
     switchUser: (user: UserName) => void;
     theme: 'light' | 'dark';
     toggleTheme: () => void;
+    isAdmin: boolean;
+    login: (password: string) => boolean;
+    logout: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -19,11 +22,18 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const [currentUser, setCurrentUser] = useState<UserName | null>(null);
     const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         const userParam = searchParams.get("u");
         if (userParam && USERS.includes(userParam as UserName)) {
             setCurrentUser(userParam as UserName);
+        }
+
+        // Restore admin session
+        const adminSession = localStorage.getItem("tokyo2026_admin");
+        if (adminSession === "true") {
+            setIsAdmin(true);
         }
     }, [searchParams]);
 
@@ -45,8 +55,22 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setTheme(prev => prev === 'dark' ? 'light' : 'dark');
     };
 
+    const login = (password: string) => {
+        if (password === "2026") {
+            setIsAdmin(true);
+            localStorage.setItem("tokyo2026_admin", "true");
+            return true;
+        }
+        return false;
+    };
+
+    const logout = () => {
+        setIsAdmin(false);
+        localStorage.removeItem("tokyo2026_admin");
+    };
+
     return (
-        <UserContext.Provider value={{ currentUser, switchUser, theme, toggleTheme }}>
+        <UserContext.Provider value={{ currentUser, switchUser, theme, toggleTheme, isAdmin, login, logout }}>
             {children}
         </UserContext.Provider>
     );
