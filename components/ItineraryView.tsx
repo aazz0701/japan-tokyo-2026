@@ -1,7 +1,6 @@
 "use client";
 
 import { useUser } from "@/components/UserProvider";
-
 import { useEffect, useState } from "react";
 import { collection, query, onSnapshot, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -19,6 +18,7 @@ import { Plus, Settings, Moon, Sun } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -50,9 +50,16 @@ interface DayData {
 }
 
 export function ItineraryView() {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
+    // Get initial tab from URL or default to day-1
+    const defaultTab = searchParams.get('tab') || "day-1";
+
     const [days, setDays] = useState<DayData[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState("day-1");
+    const [activeTab, setActiveTab] = useState(defaultTab);
     const [weather, setWeather] = useState<WeatherData | null>(null);
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<{ item: ItineraryItem, index: number } | null>(null);
@@ -62,6 +69,22 @@ export function ItineraryView() {
     const [itemToDelete, setItemToDelete] = useState<number | null>(null);
     const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
     const { theme, toggleTheme, isAdmin } = useUser();
+
+    // Sync URL when tab changes
+    const handleTabChange = (value: string) => {
+        setActiveTab(value);
+        const params = new URLSearchParams(searchParams);
+        params.set('tab', value);
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    };
+
+    // Update activeTab if URL changes externally (e.g. back button)
+    useEffect(() => {
+        const tabFromUrl = searchParams.get('tab');
+        if (tabFromUrl && tabFromUrl !== activeTab) {
+            setActiveTab(tabFromUrl);
+        }
+    }, [searchParams]);
 
     // Reset edit mode if not admin
     useEffect(() => {
@@ -183,8 +206,8 @@ export function ItineraryView() {
 
     return (
         <div className="w-full">
-            <Tabs defaultValue="day-1" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                {/* ... (existing Sticky Tab Header) */}
+            <Tabs defaultValue="day-1" value={activeTab} onValueChange={handleTabChange} className="w-full">
+                {/* Sticky Tab Header */}
                 <div className="sticky top-0 z-30 bg-background/95 backdrop-blur pt-4 pb-2 px-1 border-b border-border shadow-lg shadow-black/5 dark:shadow-black/50 transition-colors">
                     <div className="flex items-center justify-center pb-2 relative">
                         <button
@@ -205,10 +228,9 @@ export function ItineraryView() {
                             </button>
                         )}
                     </div>
-                    {/* ... (existing TabsList) */}
-                    < ScrollArea className="w-full whitespace-nowrap" >
+
+                    <ScrollArea className="w-full whitespace-nowrap">
                         <TabsList className="h-auto p-0 bg-transparent gap-2">
-                            {/* ... (existing days map) */}
                             {days.map((day) => {
                                 const dateObj = new Date(day.date);
                                 const dateStr = format(dateObj, "M/d");
@@ -240,93 +262,90 @@ export function ItineraryView() {
                             })}
                         </TabsList>
                         <ScrollBar orientation="horizontal" className="invisible" />
-                    </ScrollArea >
-                </div >
+                    </ScrollArea>
+                </div>
 
                 {/* Content Area */}
-                < div className="px-4 py-4 min-h-[50vh]" >
-                    {
-                        days.map((day) => (
-                            <TabsContent key={day.id} value={day.id} className="mt-0 focus-visible:ring-0">
-                                {/* Daily Header Summary or Weather */}
-                                <div className="mb-4 flex items-end justify-between">
-                                    <div>
-                                        <h2 className="text-xl font-bold flex items-center gap-2 text-primary drop-shadow-[0_0_8px_rgba(255,46,99,0.5)]">
-                                            Day {day.dayNumber}
-                                            <span className="text-foreground text-base font-normal opacity-80">
-                                                {/* {day.items[0]?.location || "東京"} */}
-                                            </span>
-                                        </h2>
-                                    </div>
+                <div className="px-4 py-4 min-h-[50vh]">
+                    {days.map((day) => (
+                        <TabsContent key={day.id} value={day.id} className="mt-0 focus-visible:ring-0">
+                            {/* Daily Header Summary or Weather */}
+                            <div className="mb-4 flex items-end justify-between">
+                                <div>
+                                    <h2 className="text-xl font-bold flex items-center gap-2 text-primary drop-shadow-[0_0_8px_rgba(255,46,99,0.5)]">
+                                        Day {day.dayNumber}
+                                        <span className="text-foreground text-base font-normal opacity-80">
+                                            {/* {day.items[0]?.location || "東京"} */}
+                                        </span>
+                                    </h2>
+                                </div>
 
-                                    <div className="flex gap-3 items-end">
-                                        {/* Accommodation Button */}
-                                        {day.accommodation && (
-                                            <button
-                                                onClick={() => setSelectedAccommodation(day.accommodation!)}
-                                                className="flex items-center gap-1.5 text-xs font-medium text-foreground/80 hover:text-primary transition-all bg-card/50 hover:bg-card px-3 py-1.5 rounded-full backdrop-blur-sm border border-border shadow-sm mb-0.5 group"
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bed-double group-hover:text-primary/80"><path d="M2 4v16" /><path d="M2 8h18a2 2 0 0 1 2 2v10" /><path d="M2 17h20" /><path d="M6 8v9" /></svg>
-                                                <span>住宿：{day.accommodation.name}</span>
-                                            </button>
-                                        )}
+                                <div className="flex gap-3 items-end">
+                                    {/* Accommodation Button */}
+                                    {day.accommodation && (
+                                        <button
+                                            onClick={() => setSelectedAccommodation(day.accommodation!)}
+                                            className="flex items-center gap-1.5 text-xs font-medium text-foreground/80 hover:text-primary transition-all bg-card/50 hover:bg-card px-3 py-1.5 rounded-full backdrop-blur-sm border border-border shadow-sm mb-0.5 group"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bed-double group-hover:text-primary/80"><path d="M2 4v16" /><path d="M2 8h18a2 2 0 0 1 2 2v10" /><path d="M2 17h20" /><path d="M6 8v9" /></svg>
+                                            <span>住宿：{day.accommodation.name}</span>
+                                        </button>
+                                    )}
 
-                                        {/* Weather Widget */}
-                                        {weather && weather.date.replaceAll('-', '/') === day.date.replaceAll('-', '/') && (
-                                            <div className="flex flex-col items-end animate-in fade-in slide-in-from-right-4 duration-500">
-                                                <div className="flex items-center gap-1">
-                                                    <span className="text-2xl">{getWeatherIconLabel(weather.weatherCode).icon}</span>
-                                                    <span className="text-sm font-bold text-foreground">{weather.temperatureMax}°</span>
-                                                    <span className="text-xs text-muted-foreground">/ {weather.temperatureMin}°</span>
-                                                </div>
-                                                <span className="text-[10px] text-muted-foreground">
-                                                    {getWeatherIconLabel(weather.weatherCode).label}
-                                                </span>
+                                    {/* Weather Widget */}
+                                    {weather && weather.date.replaceAll('-', '/') === day.date.replaceAll('-', '/') && (
+                                        <div className="flex flex-col items-end animate-in fade-in slide-in-from-right-4 duration-500">
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-2xl">{getWeatherIconLabel(weather.weatherCode).icon}</span>
+                                                <span className="text-sm font-bold text-foreground">{weather.temperatureMax}°</span>
+                                                <span className="text-xs text-muted-foreground">/ {weather.temperatureMin}°</span>
                                             </div>
-                                        )}
-                                    </div>
+                                            <span className="text-[10px] text-muted-foreground">
+                                                {getWeatherIconLabel(weather.weatherCode).label}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
+                            </div>
 
-                                {/* Hourly Weather Forecast Block */}
-                                {day.accommodation?.coords && (
-                                    <WeatherForecast
-                                        coords={day.accommodation.coords}
+                            {/* Hourly Weather Forecast Block */}
+                            {day.accommodation?.coords && (
+                                <WeatherForecast
+                                    coords={day.accommodation.coords}
+                                />
+                            )}
+
+                            <div className="">
+                                {day.items.map((item, idx) => (
+                                    <ItineraryCard
+                                        key={idx}
+                                        item={item}
+                                        dayId={day.id}
+                                        index={idx}
+                                        isLast={idx === day.items.length - 1}
+                                        onEdit={isEditMode ? () => setEditingItem({ item, index: idx }) : undefined}
+                                        onDelete={isEditMode ? () => handleDeleteClick(idx) : undefined}
                                     />
-                                )}
+                                ))}
+                            </div>
 
-                                <div className="space-y-4">
-                                    {day.items.map((item, idx) => (
-                                        <ItineraryCard
-                                            key={idx}
-                                            item={item}
-                                            dayId={day.id}
-                                            index={idx}
-                                            onEdit={isEditMode ? () => setEditingItem({ item, index: idx }) : undefined}
-                                            onDelete={isEditMode ? () => handleDeleteClick(idx) : undefined}
-                                        />
-                                    ))}
-                                </div>
-
-                                <div className="h-20" /> {/* Spacer for footer */}
-                            </TabsContent>
-                        ))
-                    }
-                </div >
-            </Tabs >
+                            <div className="h-20" /> {/* Spacer for footer */}
+                        </TabsContent>
+                    ))}
+                </div>
+            </Tabs>
 
             {/* Add Button - Only in Edit Mode */}
-            {
-                isEditMode && (
-                    <div className="fixed bottom-24 right-4 z-40">
-                        <Button
-                            onClick={() => setIsAddOpen(true)}
-                            className="rounded-full w-14 h-14 bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(255,46,99,0.5)] border border-white/20"
-                        >
-                            <Plus className="w-8 h-8 text-white" />
-                        </Button>
-                    </div>
-                )
-            }
+            {isEditMode && (
+                <div className="fixed bottom-24 right-4 z-40">
+                    <Button
+                        onClick={() => setIsAddOpen(true)}
+                        className="rounded-full w-14 h-14 bg-primary hover:bg-primary/90 shadow-[0_0_15px_rgba(255,46,99,0.5)] border border-white/20"
+                    >
+                        <Plus className="w-8 h-8 text-white" />
+                    </Button>
+                </div>
+            )}
 
             {/* Settings Dialog */}
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
@@ -460,6 +479,6 @@ export function ItineraryView() {
                 initialData={editingItem?.item}
                 mode={editingItem ? "edit" : "add"}
             />
-        </div >
+        </div>
     );
 }
