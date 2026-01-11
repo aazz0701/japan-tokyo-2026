@@ -46,6 +46,7 @@ function getCache(key: string) {
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function setCache(key: string, data: any) {
     if (typeof window === 'undefined') return;
     try {

@@ -8,8 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { ItineraryItem } from "./ItineraryCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { Plus, Trash2, X } from "lucide-react";
+import { Plus, X } from "lucide-react";
 
 interface ItineraryItemFormProps {
     open: boolean;
@@ -52,6 +51,7 @@ export function ItineraryItemForm({ open, onOpenChange, onSubmit, initialData, m
         onOpenChange(false);
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleChange = (field: keyof ItineraryItem, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
     };
@@ -67,6 +67,7 @@ export function ItineraryItemForm({ open, onOpenChange, onSubmit, initialData, m
         handleChange("transportation", current.filter((_, i) => i !== index));
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateTransport = (index: number, field: string, value: any) => {
         const current = [...(formData.transportation || [])];
         current[index] = { ...current[index], [field]: value };

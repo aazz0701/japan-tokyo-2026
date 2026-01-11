@@ -10,6 +10,7 @@ interface UserContextType {
     theme: 'light' | 'dark';
     toggleTheme: () => void;
     isEditMode: boolean;
+    isAdmin: boolean;
     toggleEditMode: () => void;
     login: (password: string) => boolean;
     logout: () => void;

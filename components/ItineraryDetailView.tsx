@@ -7,7 +7,7 @@ import { db } from "@/lib/firebase";
 import { ItineraryItem } from "./ItineraryCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MoreHorizontal, Clock, MapPin, Navigation, ExternalLink, Globe, CheckCircle2, PlusCircle, Train, Footprints, Bus, Plane } from "lucide-react";
+import { ArrowLeft, MoreHorizontal, Clock, MapPin, Navigation, ExternalLink, Globe, CheckCircle2, PlusCircle, Train, Footprints, Bus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "./UserProvider";
@@ -77,7 +77,7 @@ export function ItineraryDetailView() {
         );
     }
 
-    const defaultCover = item.coverImage || (item.images && item.images[0]) || "/placeholder-location.jpg"; // You might need a real placeholder
+
 
     return (
         <div className="min-h-screen bg-background pb-24 relative animate-in fade-in duration-300">

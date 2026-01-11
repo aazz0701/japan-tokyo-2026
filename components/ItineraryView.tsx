@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { collection, query, onSnapshot, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ItineraryCard, ItineraryItem } from "./ItineraryCard";
+import { ItineraryItem } from "./ItineraryCard";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { zhTW } from "date-fns/locale";
