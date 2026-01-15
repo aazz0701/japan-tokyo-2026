@@ -149,7 +149,7 @@ export function ItineraryCard({ item, dayId, index, isLast, onEdit, onDelete }: 
             {/* We use border-l on the Card above for the accent color */}
 
             <CardContent className="p-4">
-                <div className="flex justify-between items-start gap-4">
+                <div className="flex justify-between items-center gap-4">
                     <div className="space-y-2 flex-1 min-w-0">
                         {/* Category Badge for General Items */}
                         {styles.type !== 'transport' && (
