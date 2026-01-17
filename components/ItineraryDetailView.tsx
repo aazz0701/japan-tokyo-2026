@@ -305,7 +305,7 @@ export function ItineraryDetailView() {
             </div>
 
             {/* Bottom Actions */}
-            {isAdmin && (
+            {/* {isAdmin && (
                 <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-xl border-t border-border z-50 flex gap-3 pb-8">
                     <Button
                         variant="outline"
@@ -319,7 +319,7 @@ export function ItineraryDetailView() {
                         <PlusCircle className="w-5 h-5 mr-2" /> 新增支出
                     </Button>
                 </div>
-            )}
+            )} */}
         </div>
     );
 }

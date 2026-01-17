@@ -1,4 +1,4 @@
-export const USERS = ["至", "霖", "恕", "皮", "蓓"] as const;
+export const USERS = ["霖", "至", "恕", "皮", "蓓"] as const;
 export type UserName = typeof USERS[number];
 
 export const EXPENSE_CATEGORIES = [

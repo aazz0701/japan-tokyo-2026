@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 export function InfoView() {
     // Currency Converter State
     const [jpy, setJpy] = useState<string>("");
-    const [rate, setRate] = useState<string>("0.22");
+    const [rate, setRate] = useState<string>("0.2050");
 
     // Login State
     const { isAdmin, login, logout } = useUser();
