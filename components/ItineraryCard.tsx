@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
     MapPin, Pencil, Trash2, Eye,
-    Train, Camera, Utensils, ShoppingBag, BedDouble, Footprints
+    Train, Camera, Utensils, ShoppingBag, BedDouble, Footprints, Banknote
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -151,12 +151,6 @@ export function ItineraryCard({ item, dayId, index, isLast, onEdit, onDelete }: 
             <CardContent className="p-4">
                 <div className="flex justify-between items-center gap-4">
                     <div className="space-y-2 flex-1 min-w-0">
-                        {/* Category Badge for General Items */}
-                        {styles.type !== 'transport' && (
-                            <Badge variant="secondary" className={cn("text-[10px] px-2 py-0.5 h-auto font-medium mb-1 border-0 rounded-md", styles.badgeBg, styles.color)}>
-                                {item.category || "景點"}
-                            </Badge>
-                        )}
 
                         {/* Title */}
                         <h3 className={cn(
@@ -174,10 +168,26 @@ export function ItineraryCard({ item, dayId, index, isLast, onEdit, onDelete }: 
                         )}
 
                         {/* Location for Transport */}
-                        {item.location && styles.type === 'transport' && (
+                        {item.location && styles.type !== 'transport' && (
                             <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 mt-2">
                                 <MapPin className="w-3.5 h-3.5" />
                                 {item.location}
+                            </div>
+                        )}
+
+                        {/* Transport Summary for Transport Items */}
+                        {styles.type === 'transport' && item.transport && (
+                            <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                                <Train className="w-3.5 h-3.5" />
+                                {item.transport}
+                            </div>
+                        )}
+
+                        {/* Cost for Transport */}
+                        {styles.type === 'transport' && item.cost !== "0" && item.cost && (
+                            <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 mt-2">
+                                <Banknote className="w-3.5 h-3.5" />
+                                {item.cost}
                             </div>
                         )}
                     </div>

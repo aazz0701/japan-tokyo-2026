@@ -157,6 +157,27 @@ export function ItineraryItemForm({ open, onOpenChange, onSubmit, initialData, m
                                     </div>
                                 </div>
 
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="duration">時長</Label>
+                                        <Input
+                                            id="duration"
+                                            type="text"
+                                            value={formData.duration || ""}
+                                            onChange={(e) => handleChange("duration", e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="transport">交通</Label>
+                                        <Input
+                                            id="transport"
+                                            type="text"
+                                            value={formData.transport || ""}
+                                            onChange={(e) => handleChange("transport", e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
                                 <div className="grid grid-cols-1 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="location">地點 (Google Maps 關鍵字)</Label>
