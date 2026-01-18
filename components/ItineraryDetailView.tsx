@@ -93,7 +93,7 @@ export function ItineraryDetailView() {
                     <ArrowLeft className="w-5 h-5" />
                 </Button>
 
-                <h1 className="text-white font-bold text-shadow pointer-events-auto">Day {dayId?.replace("day-", "")} : {item.location.split(' ')[0]}</h1>
+                <h1 className="text-white font-bold text-shadow pointer-events-auto">{dayId}: {item.activity}</h1>
 
                 <Button
                     variant="secondary"
@@ -104,31 +104,31 @@ export function ItineraryDetailView() {
                 </Button>
             </div>
 
-            {/* 2. Hero Image */}
-            <div className="relative w-full h-[40vh] bg-muted">
-                {/* Fallback color if no image. In a real app we'd fetch or use a category default */}
-                <div className="absolute inset-0 bg-primary/20 flex items-center justify-center text-primary/40 font-bold text-6xl select-none overflow-hidden">
-                    {item.coverImage || (item.images && item.images.length > 0) ? (
+            {/* 2. Hero Image - 只在有圖片時顯示 */}
+            {(item.coverImage || (item.images && item.images.length > 0)) && (
+                <div className="relative w-full h-[40vh] bg-muted">
+                    <div className="absolute inset-0 bg-primary/20 flex items-center justify-center text-primary/40 font-bold text-6xl select-none overflow-hidden">
                         <img src={item.coverImage || item.images![0]} alt={item.activity} className="w-full h-full object-cover" />
-                    ) : (
-                        <span className="opacity-20">{item.activity[0]}</span>
+                    </div>
+
+                    {/* Dark overlay at bottom */}
+                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background via-background/80 to-transparent" />
+
+                    {/* Address Tag */}
+                    {item.location && (
+                        <div className="absolute bottom-4 left-4 flex gap-2 items-center text-white/90 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10 text-xs">
+                            <MapPin className="w-3.5 h-3.5 text-primary" />
+                            <span>{item.address || item.location}</span>
+                        </div>
                     )}
                 </div>
-
-                {/* Dark overlay at bottom */}
-                <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background via-background/80 to-transparent" />
-
-                {/* Address Tag */}
-                {item.location && (
-                    <div className="absolute bottom-4 left-4 flex gap-2 items-center text-white/90 bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10 text-xs">
-                        <MapPin className="w-3.5 h-3.5 text-primary" />
-                        <span>{item.address || item.location}</span>
-                    </div>
-                )}
-            </div>
+            )}
 
             {/* 3. Content Body */}
-            <div className="px-5 space-y-6 -mt-2 relative z-10">
+            <div className={cn(
+                "px-5 space-y-6 relative z-10",
+                (item.coverImage || (item.images && item.images.length > 0)) ? "-mt-2" : "pt-28"
+            )}>
                 {/* Header Info */}
                 <div className="space-y-3">
                     <h1 className="text-3xl font-black text-foreground leading-tight tracking-tight">
@@ -168,13 +168,13 @@ export function ItineraryDetailView() {
                     <p>{item.description || item.note || "暫無詳細介紹..."}</p>
                 </div>
 
-                {/* Transportation - Timeline Style */}
-                <div className="space-y-3">
-                    <h3 className="font-bold text-lg flex items-center gap-2">
-                        <Navigation className="w-5 h-5 text-primary" /> 交通方式
-                    </h3>
-                    <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
-                        {item.transportation && item.transportation.length > 0 ? (
+                {/* Transportation - Timeline Style - 只在有交通方式時顯示 */}
+                {item.transportation && item.transportation.length > 0 && (
+                    <div className="space-y-3">
+                        <h3 className="font-bold text-lg flex items-center gap-2">
+                            <Navigation className="w-5 h-5 text-primary" /> 交通方式
+                        </h3>
+                        <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
                             <div className="relative pl-2">
                                 {/* Vertical Line */}
                                 <div className="absolute left-[15px] top-2 bottom-6 w-0.5 bg-border" />
@@ -201,62 +201,52 @@ export function ItineraryDetailView() {
                                     </div>
                                 ))}
                             </div>
-                        ) : (
-                            <div className="flex items-center gap-3 text-muted-foreground text-sm">
-                                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                                    <Footprints className="w-4 h-4 opacity-50" />
+
+                            {/* Google Maps 規劃路線按鈕 */}
+                            {item.location && (
+                                <Button
+                                    variant="outline"
+                                    className="w-full mt-4 border-dashed border-border"
+                                    onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${item.location}`, "_blank")}
+                                >
+                                    <ExternalLink className="w-4 h-4 mr-2" />
+                                    使用 Google Maps 規劃路線
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Location Map Styled Card - 只在有地點時顯示 */}
+                {item.location && (
+                    <div className="space-y-3">
+                        <h3 className="font-bold text-lg flex items-center gap-2">
+                            <MapPin className="w-5 h-5 text-primary" /> 地點
+                        </h3>
+                        <div className="rounded-2xl overflow-hidden border border-border shadow-md bg-white dark:bg-stone-900 transition-colors duration-300">
+                            {/* Map Visual Area */}
+                            <div className="relative h-48 w-full bg-stone-100 dark:bg-stone-800 group cursor-pointer overflow-hidden">
+                                {/* Map Logic: Attempt to load OSM Embed if we can get coords, otherwise fall back to pattern */}
+                                <MapPreview location={item.location} address={item.address} theme={theme} />
+                            </div>
+
+                            {/* Bottom Info Bar */}
+                            <div className="p-4 flex items-center justify-between bg-white dark:bg-stone-950 text-foreground dark:text-white transition-colors duration-300">
+                                <div className="flex-1 mr-4 overflow-hidden">
+                                    <h4 className="font-bold text-lg truncate leading-tight text-foreground dark:text-white">{item.location}</h4>
+                                    <p className="text-muted-foreground dark:text-zinc-400 text-xs mt-1 truncate">{item.address || item.location}</p>
                                 </div>
-                                <span>尚未設定交通方式</span>
+                                <Button
+                                    onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location)}`, "_blank")}
+                                    className="bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl px-4 h-10 shadow-lg shadow-rose-500/20 dark:shadow-rose-900/20"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+                                    開啟地圖
+                                </Button>
                             </div>
-                        )}
-
-                        {/* Suggest Google Maps if no transport details */}
-                        <Button
-                            variant="outline"
-                            className="w-full mt-4 border-dashed border-border"
-                            onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${item.location}`, "_blank")}
-                        >
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            使用 Google Maps 規劃路線
-                        </Button>
-                    </div>
-                </div>
-
-                {/* Location Map Styled Card */}
-                <div className="space-y-3">
-                    <h3 className="font-bold text-lg flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-primary" /> 地點
-                    </h3>
-                    <div className="rounded-2xl overflow-hidden border border-border shadow-md bg-white dark:bg-stone-900 transition-colors duration-300">
-                        {/* Map Visual Area */}
-                        <div className="relative h-48 w-full bg-stone-100 dark:bg-stone-800 group cursor-pointer overflow-hidden">
-                            {/* Map Logic: Attempt to load OSM Embed if we can get coords, otherwise fall back to pattern */}
-                            <MapPreview location={item.location} address={item.address} theme={theme} />
-
-                            {/* Overlay for Click-to-Open Action (intercepts clicks on the iframe if we want to force opening GMap app, but let's allow interaction or overlay it) */}
-                            {/* We put a transparent overlay to prevent scrolling the map but allow clicking to open external */}
-                            {/* <div
-                                className="absolute inset-0 bg-transparent z-10"
-                                onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location)}`, "_blank")}
-                            /> */}
-                        </div>
-
-                        {/* Bottom Info Bar */}
-                        <div className="p-4 flex items-center justify-between bg-white dark:bg-stone-950 text-foreground dark:text-white transition-colors duration-300">
-                            <div className="flex-1 mr-4 overflow-hidden">
-                                <h4 className="font-bold text-lg truncate leading-tight text-foreground dark:text-white">{item.location}</h4>
-                                <p className="text-muted-foreground dark:text-zinc-400 text-xs mt-1 truncate">{item.address || item.location}</p>
-                            </div>
-                            <Button
-                                onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location)}`, "_blank")}
-                                className="bg-rose-500 hover:bg-rose-600 text-white font-bold rounded-xl px-4 h-10 shadow-lg shadow-rose-500/20 dark:shadow-rose-900/20"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
-                                開啟地圖
-                            </Button>
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* Notes & Links */}
                 {(item.links || item.note) && (
