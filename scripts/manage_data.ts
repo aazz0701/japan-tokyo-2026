@@ -1,16 +1,18 @@
+#!/usr/bin/env npx tsx
 
 import { db } from "../lib/firebase";
-import { collection, getDocs, doc, setDoc, Timestamp } from "firebase/firestore";
+import { collection, getDocs, doc, setDoc } from "firebase/firestore";
 import * as fs from "fs";
 import * as path from "path";
 
 const DATA_DIR = path.join(process.cwd(), "data");
-const BACKUP_FILE = path.join(DATA_DIR, "backup.json");
 
 // Helper to convert Firestore Timestamps to ISO strings for JSON
 const convertTimestamps = (obj: any): any => {
     if (obj === null || obj === undefined) return obj;
-    if (obj instanceof Timestamp) return { __type__: "Timestamp", value: obj.toDate().toISOString() };
+    if (obj?.toDate && typeof obj.toDate === 'function') {
+        return { __type__: "Timestamp", value: obj.toDate().toISOString() };
+    }
     if (Array.isArray(obj)) return obj.map(convertTimestamps);
     if (typeof obj === "object") {
         const newObj: any = {};
@@ -25,7 +27,9 @@ const convertTimestamps = (obj: any): any => {
 // Helper to restore ISO strings to Firestore Timestamps
 const restoreTimestamps = (obj: any): any => {
     if (obj === null || obj === undefined) return obj;
-    if (typeof obj === "object" && obj.__type__ === "Timestamp") return Timestamp.fromDate(new Date(obj.value));
+    if (typeof obj === "object" && obj.__type__ === "Timestamp") {
+        return new Date(obj.value);
+    }
     if (Array.isArray(obj)) return obj.map(restoreTimestamps);
     if (typeof obj === "object") {
         const newObj: any = {};
@@ -37,107 +41,102 @@ const restoreTimestamps = (obj: any): any => {
     return obj;
 };
 
-async function exportData() {
-    console.log("Starting export...");
-    const data: any = {
-        itinerary: {},
-        expenses: {},
-        shopping: {}
-    };
+async function exportData(collectionName: string, outputFile: string) {
+    console.log(`開始從 ${collectionName} 匯出資料...`);
+    const data: any = { itinerary: {} };
 
     try {
-        // 1. Itinerary
-        const itinerarySnapshot = await getDocs(collection(db, "itinerary"));
-        itinerarySnapshot.forEach(doc => {
+        const snapshot = await getDocs(collection(db, collectionName));
+        snapshot.forEach(doc => {
             data.itinerary[doc.id] = doc.data();
         });
-        console.log(`Fetched ${itinerarySnapshot.size} itinerary days.`);
+        console.log(`取得 ${snapshot.size} 天的資料`);
 
-        // 2. Expenses
-        const expensesSnapshot = await getDocs(collection(db, "expenses"));
-        expensesSnapshot.forEach(doc => {
-            data.expenses[doc.id] = doc.data();
-        });
-        console.log(`Fetched ${expensesSnapshot.size} expenses.`);
-
-        // 3. Shopping
-        const shoppingSnapshot = await getDocs(collection(db, "shopping"));
-        shoppingSnapshot.forEach(doc => {
-            data.shopping[doc.id] = doc.data();
-        });
-        console.log(`Fetched ${shoppingSnapshot.size} shopping items.`);
-
-        // Save to file
         const jsonContent = JSON.stringify(convertTimestamps(data), null, 2);
+        const outputPath = path.join(DATA_DIR, outputFile);
+
         if (!fs.existsSync(DATA_DIR)) {
             fs.mkdirSync(DATA_DIR);
         }
-        fs.writeFileSync(BACKUP_FILE, jsonContent);
-        console.log(`\nExport successful! Data saved to: ${BACKUP_FILE}`);
+        fs.writeFileSync(outputPath, jsonContent);
+        console.log(`✅ 匯出成功！資料已儲存至：${outputPath}`);
 
     } catch (error) {
-        console.error("Export failed:", error);
+        console.error("匯出失敗:", error);
         process.exit(1);
     }
-    process.exit(0);
 }
 
-async function importData() {
-    console.log("Starting import...");
+async function importData(collectionName: string, inputFile: string) {
+    console.log(`開始將 ${inputFile} 匯入到 ${collectionName}...`);
 
-    if (!fs.existsSync(BACKUP_FILE)) {
-        console.error(`Backup file not found at: ${BACKUP_FILE}`);
+    const inputPath = path.join(DATA_DIR, inputFile);
+    if (!fs.existsSync(inputPath)) {
+        console.error(`找不到備份檔案：${inputPath}`);
         process.exit(1);
     }
 
     try {
-        const fileContent = fs.readFileSync(BACKUP_FILE, "utf-8");
+        const fileContent = fs.readFileSync(inputPath, "utf-8");
         const data = restoreTimestamps(JSON.parse(fileContent));
 
-        // 1. Itinerary
         if (data.itinerary) {
-            console.log("Restoring itinerary...");
+            console.log("正在還原 itinerary...");
+            let count = 0;
             for (const [id, docData] of Object.entries(data.itinerary)) {
-                await setDoc(doc(db, "itinerary", id), docData as any);
+                await setDoc(doc(db, collectionName, id), docData as any);
+                console.log(`  ✓ ${id}`);
+                count++;
             }
+            console.log(`✅ 成功匯入 ${count} 天的資料`);
         }
 
-        // 2. Expenses
         if (data.expenses) {
-            console.log("Restoring expenses...");
+            console.log("正在還原 expenses...");
             for (const [id, docData] of Object.entries(data.expenses)) {
                 await setDoc(doc(db, "expenses", id), docData as any);
             }
         }
 
-        // 3. Shopping
         if (data.shopping) {
-            console.log("Restoring shopping items...");
+            console.log("正在還原 shopping...");
             for (const [id, docData] of Object.entries(data.shopping)) {
                 await setDoc(doc(db, "shopping", id), docData as any);
             }
         }
 
-        console.log("\nImport successful!");
+        console.log("\n✅ 匯入完成！");
 
     } catch (error) {
-        console.error("Import failed:", error);
+        console.error("匯入失敗:", error);
         process.exit(1);
     }
-    process.exit(0);
 }
 
 // CLI Args
 const args = process.argv.slice(2);
+const collectionFlag = args.indexOf("--collection");
+const collectionName = collectionFlag >= 0 ? args[collectionFlag + 1] : "itinerary";
+const fileFlag = args.indexOf("--file");
+const file = fileFlag >= 0 ? args[fileFlag + 1] : "backup.json";
+
 if (args.includes("--export")) {
-    exportData();
+    exportData(collectionName, file).then(() => process.exit(0));
 } else if (args.includes("--import")) {
-    // Add simple confirmation for import
-    console.log("WARNING: This will overwrite existing data in Firestore with data from backup.json.");
-    console.log("To proceed, please ensure you have a backup of current data.");
-    console.log("Run with --force to skip this warning (not implemented yet, just run the function).");
-    importData();
+    console.log("⚠️  警告：此操作將覆寫 Firestore 中的現有資料。");
+    console.log(`Collection: ${collectionName}`);
+    console.log(`檔案: ${file}`);
+    importData(collectionName, file).then(() => process.exit(0));
 } else {
-    console.log("Usage: npx tsx scripts/manage_data.ts [--export | --import]");
+    console.log("使用方式：");
+    console.log("  匯出: npx tsx scripts/manage_data.ts --export [--collection <name>] [--file <filename>]");
+    console.log("  匯入: npx tsx scripts/manage_data.ts --import [--collection <name>] [--file <filename>]");
+    console.log("\n範例：");
+    console.log("  # 匯出主行程到 backup.json");
+    console.log("  npx tsx scripts/manage_data.ts --export");
+    console.log("\n  # 匯出第二組行程到 group2.json");
+    console.log("  npx tsx scripts/manage_data.ts --export --collection itinerary_group2 --file group2.json");
+    console.log("\n  # 從 group2.json 匯入到 itinerary_group2");
+    console.log("  npx tsx scripts/manage_data.ts --import --collection itinerary_group2 --file group2.json");
     process.exit(0);
 }

@@ -47,6 +47,7 @@ import {
 } from '@dnd-kit/sortable';
 import { SortableItineraryCard } from './SortableItineraryCard';
 import { AccommodationForm } from './AccommodationForm';
+import { ItineraryVersionSwitcher, ItineraryVersion, ITINERARY_VERSIONS } from './ItineraryVersionSwitcher';
 
 interface Accommodation {
     name: string;
@@ -72,12 +73,14 @@ export function ItineraryView() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    // Get initial tab from URL or default to day-1
+    // Get initial tab and version from URL
     const defaultTab = searchParams.get('tab') || "day-1";
+    const defaultVersion = (searchParams.get('version') as ItineraryVersion) || 'main';
 
     const [days, setDays] = useState<DayData[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState(defaultTab);
+    const [selectedVersion, setSelectedVersion] = useState<ItineraryVersion>(defaultVersion);
     const [weather, setWeather] = useState<WeatherData | null>(null);
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<{ item: ItineraryItem, index: number } | null>(null);
@@ -87,6 +90,9 @@ export function ItineraryView() {
     const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
     const [editingAccommodation, setEditingAccommodation] = useState<{ accommodation: Accommodation, dayId: string } | null>(null);
     const { theme, toggleTheme, isAdmin, isEditMode, toggleEditMode } = useUser();
+
+    // Get current collection name based on selected version
+    const currentCollection = ITINERARY_VERSIONS.find(v => v.id === selectedVersion)?.collection || 'itinerary';
 
     // Setup DnD Sensors
     const sensors = useSensors(
@@ -114,13 +120,39 @@ export function ItineraryView() {
         router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     };
 
-    // Update activeTab if URL changes externally (e.g. back button)
+    // Handle version change
+    const handleVersionChange = (version: ItineraryVersion) => {
+        setSelectedVersion(version);
+        setLoading(true); // Show loading while switching
+        const params = new URLSearchParams(searchParams);
+        params.set('version', version);
+        // Reset to day-1 when switching versions
+        params.set('tab', 'day-1');
+        setActiveTab('day-1');
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+        // Store preference in localStorage
+        localStorage.setItem('itinerary_version', version);
+    };
+
+    // Update activeTab and version if URL changes externally (e.g. back button)
     useEffect(() => {
         const tabFromUrl = searchParams.get('tab');
         if (tabFromUrl && tabFromUrl !== activeTab) {
             setActiveTab(tabFromUrl);
         }
+        const versionFromUrl = searchParams.get('version') as ItineraryVersion;
+        if (versionFromUrl && versionFromUrl !== selectedVersion) {
+            setSelectedVersion(versionFromUrl);
+        }
     }, [searchParams]);
+
+    // Initialize version from localStorage on mount
+    useEffect(() => {
+        const savedVersion = localStorage.getItem('itinerary_version') as ItineraryVersion;
+        if (savedVersion && !searchParams.get('version')) {
+            setSelectedVersion(savedVersion);
+        }
+    }, []);
 
     // Reset edit mode if not admin (safety check)
     useEffect(() => {
@@ -138,7 +170,7 @@ export function ItineraryView() {
 
         const newItems = [...currentDay.items, newItem];
         try {
-            await updateDoc(doc(db, "itinerary", currentDay.id), { items: newItems });
+            await updateDoc(doc(db, currentCollection, currentDay.id), { items: newItems });
         } catch (error) {
             console.error("Error adding item:", error);
             alert("新增失敗");
@@ -155,7 +187,7 @@ export function ItineraryView() {
         newItems[editingItem.index] = { ...updatedItem, id: updatedItem.id || currentDay.items[editingItem.index].id || crypto.randomUUID() };
 
         try {
-            await updateDoc(doc(db, "itinerary", currentDay.id), { items: newItems });
+            await updateDoc(doc(db, currentCollection, currentDay.id), { items: newItems });
             setEditingItem(null);
         } catch (error) {
             console.error("Error editing item:", error);
@@ -178,7 +210,7 @@ export function ItineraryView() {
         const newItems = currentDay.items.filter((_, i) => i !== index);
 
         try {
-            await updateDoc(doc(db, "itinerary", currentDay.id), { items: newItems });
+            await updateDoc(doc(db, currentCollection, currentDay.id), { items: newItems });
         } catch (error) {
             console.error("Error deleting item:", error);
             alert("刪除失敗");
@@ -208,7 +240,7 @@ export function ItineraryView() {
 
         // Firestore Update
         try {
-            await updateDoc(doc(db, "itinerary", dayId), { items: newItems });
+            await updateDoc(doc(db, currentCollection, dayId), { items: newItems });
         } catch (error) {
             console.error("Error reordering items:", error);
             // Revert on error (optional, simplified here)
@@ -235,7 +267,7 @@ export function ItineraryView() {
         const dayId = editingAccommodation.dayId;
 
         try {
-            await updateDoc(doc(db, "itinerary", dayId), { accommodation });
+            await updateDoc(doc(db, currentCollection, dayId), { accommodation });
             setEditingAccommodation(null);
         } catch (error) {
             console.error("Error updating accommodation:", error);
@@ -258,7 +290,7 @@ export function ItineraryView() {
     }, [activeTab, days]);
 
     useEffect(() => {
-        const q = query(collection(db, "itinerary"));
+        const q = query(collection(db, currentCollection));
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const fetchedDays: DayData[] = [];
@@ -280,7 +312,7 @@ export function ItineraryView() {
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [currentCollection, selectedVersion]);
 
     if (loading) {
         return (
@@ -460,18 +492,33 @@ export function ItineraryView() {
                     <DialogHeader>
                         <DialogTitle>設定</DialogTitle>
                     </DialogHeader>
-                    <div className="py-4">
-                        <div className="flex items-center justify-between space-x-2">
-                            <Label htmlFor="edit-mode" className="text-white">編輯模式</Label>
-                            <Switch
-                                id="edit-mode"
-                                checked={isEditMode}
-                                onCheckedChange={toggleEditMode}
-                            />
+                    <div className="py-4 space-y-6">
+                        {/* Edit Mode Toggle */}
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between space-x-2">
+                                <Label htmlFor="edit-mode" className="text-white">編輯模式</Label>
+                                <Switch
+                                    id="edit-mode"
+                                    checked={isEditMode}
+                                    onCheckedChange={toggleEditMode}
+                                />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                開啟後可新增、編輯或刪除行程。
+                            </p>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2">
-                            開啟後可新增、編輯或刪除行程。
-                        </p>
+
+                        {/* Version Switcher - Admin Only */}
+                        <div className="space-y-2 pt-4 border-t border-white/10">
+                            <Label className="text-white">行程版本</Label>
+                            <ItineraryVersionSwitcher
+                                value={selectedVersion}
+                                onChange={handleVersionChange}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                切換至不同的行程版本。一般使用者可透過 URL 參數切換（?version=group2）。
+                            </p>
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>
