@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Phone, ExternalLink, MessageCircle, Calculator, ArrowRightLeft, TrainFront, Map, Lock, LogOut } from "lucide-react";
+import { Phone, ExternalLink, MessageCircle, Calculator, ArrowRightLeft, TrainFront, Map, Lock, LogOut, Bike } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,10 @@ export function InfoView() {
     const [password, setPassword] = useState("");
     const [tapCount, setTapCount] = useState(0);
 
+    // Phrase Card State
+    const [selectedPhrase, setSelectedPhrase] = useState<number | null>(null);
+    const [showPhraseCard, setShowPhraseCard] = useState(false);
+
     const twd = jpy ? Math.round(parseInt(jpy) * parseFloat(rate)) : 0;
     // const { theme, toggleTheme } = useUser(); // Moved to ItineraryView
 
@@ -31,6 +35,14 @@ export function InfoView() {
         { jp: "お会計をお願いします", romaji: "Okaikei o onegaishimasu", zh: "麻煩結帳" },
         { jp: "トイレはどこですか？", romaji: "Toire wa doko desu ka?", zh: "廁所在哪裡？" },
         { jp: "袋はいりません", romaji: "Fukuro wa irimasen", zh: "不用袋子" },
+        { jp: "〜はどこですか？", romaji: "〜wa doko desu ka?", zh: "〜在哪裡？（問路）" },
+        { jp: "いくらですか？", romaji: "Ikura desu ka?", zh: "多少錢？" },
+        { jp: "〜が食べられません", romaji: "〜ga taberaremasen", zh: "我不能吃〜（過敏）" },
+        { jp: "免税できますか？", romaji: "Menzei dekimasu ka?", zh: "可以免稅嗎？" },
+        { jp: "写真を撮ってもいいですか？", romaji: "Shashin o totte mo ii desu ka?", zh: "可以拍照嗎？" },
+        { jp: "道に迷いました", romaji: "Michi ni mayoimashita", zh: "我迷路了" },
+        { jp: "ネギ抜きでお願いします", romaji: "Negi nuki de onegaishimasu", zh: "請不要加蔥" },
+        { jp: "領収書をください", romaji: "Ryoushuusho o kudasai", zh: "請給我收據" },
     ];
 
     useEffect(() => {
@@ -150,6 +162,77 @@ export function InfoView() {
 
             <Separator className="bg-border" />
 
+            {/* 2.5 Recommended Services */}
+            <section className="space-y-3">
+                <h2 className="text-xl font-bold flex items-center gap-2 text-primary">
+                    <Bike className="w-6 h-6" /> 推薦服務
+                </h2>
+
+                <div className="grid grid-cols-2 gap-3">
+                    {/* LUUP */}
+                    <Card className="bg-card border-border hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => window.open("https://luup.sc/", "_blank")}>
+                        <CardContent className="p-3">
+                            <div className="flex flex-col items-center text-center gap-2">
+                                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shrink-0 text-2xl">
+                                    🛴
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-sm text-foreground">LUUP</h3>
+                                    <p className="text-[10px] text-muted-foreground mt-0.5">共享電動車</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Google Maps */}
+                    <Card className="bg-card border-border hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => window.open("https://www.google.com/maps?hl=zh-TW", "_blank")}>
+                        <CardContent className="p-3">
+                            <div className="flex flex-col items-center text-center gap-2">
+                                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shrink-0 text-2xl">
+                                    🗺️
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-sm text-foreground">Google Maps</h3>
+                                    <p className="text-[10px] text-muted-foreground mt-0.5">導航與路線</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Tabelog */}
+                    <Card className="bg-card border-border hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => window.open("https://tabelog.com/", "_blank")}>
+                        <CardContent className="p-3">
+                            <div className="flex flex-col items-center text-center gap-2">
+                                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shrink-0 text-2xl">
+                                    🍜
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-sm text-foreground">Tabelog</h3>
+                                    <p className="text-[10px] text-muted-foreground mt-0.5">美食評價</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Convenience Stores */}
+                    <Card className="bg-card border-border hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => window.open("https://www.sej.co.jp/", "_blank")}>
+                        <CardContent className="p-3">
+                            <div className="flex flex-col items-center text-center gap-2">
+                                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center shrink-0 text-2xl">
+                                    🏪
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-sm text-foreground">便利商店</h3>
+                                    <p className="text-[10px] text-muted-foreground mt-0.5">7-11/全家</p>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </section>
+
+            <Separator className="bg-border" />
+
             {/* 2. Emergency */}
             <section className="space-y-3">
                 <h2 className="text-xl font-bold flex items-center gap-2 text-primary">
@@ -185,7 +268,8 @@ export function InfoView() {
                 <div className="grid gap-2">
                     {PHRASES.map((p, i) => (
                         <Card key={i} className="bg-card border-border active:bg-muted transition-colors cursor-pointer" onClick={() => {
-                            // Potential TTS feature here
+                            setSelectedPhrase(i);
+                            setShowPhraseCard(true);
                         }}>
                             <CardContent className="p-3 flex justify-between items-center">
                                 <div>
@@ -230,6 +314,39 @@ export function InfoView() {
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setShowLogin(false)}>取消</Button>
                         <Button onClick={handleLogin}>登入</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Phrase Card Dialog */}
+            <Dialog open={showPhraseCard} onOpenChange={setShowPhraseCard}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-center">實用日語</DialogTitle>
+                        <DialogDescription className="text-center text-xs">
+                            點擊可拿給對方看
+                        </DialogDescription>
+                    </DialogHeader>
+                    {selectedPhrase !== null && (
+                        <div className="py-8 px-4 space-y-6">
+                            {/* Large Japanese Text */}
+                            <div className="text-center">
+                                <div className="text-5xl font-black text-foreground mb-4 leading-tight">
+                                    {PHRASES[selectedPhrase].jp}
+                                </div>
+                                <div className="text-lg text-muted-foreground mb-2">
+                                    {PHRASES[selectedPhrase].romaji}
+                                </div>
+                                <div className="text-base text-primary font-bold">
+                                    {PHRASES[selectedPhrase].zh}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowPhraseCard(false)} className="w-full">
+                            關閉
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

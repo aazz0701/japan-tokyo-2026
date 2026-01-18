@@ -4,7 +4,7 @@ import "./globals.css";
 import { Suspense } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { UserProvider } from "@/components/UserProvider";
-import { Calendar, CreditCard, ShoppingBag, Info } from "lucide-react";
+import { Calendar, CreditCard, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 // import { USERS } from "@/lib/constants";
 
