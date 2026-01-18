@@ -1,7 +1,6 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
     MapPin, Pencil, Trash2, Eye,
     Train, Camera, Utensils, ShoppingBag, BedDouble, Footprints, Banknote
@@ -50,12 +49,6 @@ interface ItineraryCardProps {
 const getCategoryStyles = (category?: string, activity: string = "") => {
     // Detect implicit categories if not set
     let effectiveCategory = category;
-    if (!effectiveCategory) {
-        if (activity.includes("飛往") || activity.includes("新幹線") || activity.includes("移動") || activity.includes("出發")) effectiveCategory = '交通';
-        else if (activity.includes("晚餐") || activity.includes("午餐") || activity.includes("早餐") || activity.includes("吃")) effectiveCategory = '用餐';
-        else if (activity.includes("飯店") || activity.includes("民宿") || activity.includes("入住")) effectiveCategory = '住宿';
-        else effectiveCategory = '景點';
-    }
 
     // Colors adjusted for better visibility in both Light and Dark modes
     switch (effectiveCategory) {

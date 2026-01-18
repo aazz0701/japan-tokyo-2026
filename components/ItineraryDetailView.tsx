@@ -7,7 +7,8 @@ import { db } from "@/lib/firebase";
 import { ItineraryItem } from "./ItineraryCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, MoreHorizontal, Clock, MapPin, Navigation, ExternalLink, Globe, CheckCircle2, PlusCircle, Train, Footprints, Bus } from "lucide-react";
+
+import { ArrowLeft, MoreHorizontal, Clock, MapPin, Navigation, ExternalLink, Globe, Train, Footprints, Bus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "./UserProvider";
@@ -22,7 +23,7 @@ export function ItineraryDetailView() {
     const [loading, setLoading] = useState(true);
     const [dayDate, setDayDate] = useState<string>("");
 
-    const { theme, isAdmin } = useUser();
+    const { theme } = useUser();
 
     useEffect(() => {
         const fetchItem = async () => {
@@ -294,7 +295,7 @@ export function ItineraryDetailView() {
                                         <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center">
                                             <span className="text-xs">🍽️</span>
                                         </div>
-                                        <span className="font-medium text-sm text-foreground">附近午食選擇 (Tabelog)</span>
+                                        <span className="font-medium text-sm text-foreground">附近餐廳 (Tabelog)</span>
                                     </div>
                                     <ArrowLeft className="w-4 h-4 rotate-180 text-muted-foreground" />
                                 </a>

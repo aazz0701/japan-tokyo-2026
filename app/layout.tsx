@@ -20,6 +20,39 @@ export default function RootLayout({
         <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)" />
         <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            if ('serviceWorker' in navigator) {
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').then(function(reg) {
+                  // 檢測 Service Worker 更新
+                  reg.addEventListener('updatefound', function() {
+                    const newWorker = reg.installing;
+                    newWorker.addEventListener('statechange', function() {
+                      if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        // 新的 Service Worker 已安裝，詢問使用者是否重新載入
+                        if (confirm('🎉 有新版本可用！\\n\\n點擊確定以更新到最新版本。')) {
+                          newWorker.postMessage({ type: 'SKIP_WAITING' });
+                          window.location.reload();
+                        }
+                      }
+                    });
+                  });
+                }).catch(function(err) {
+                  console.log('Service Worker 註冊失敗:', err);
+                });
+                
+                // 監聽 controllerchange 事件（當新的 SW 接管時）
+                let refreshing = false;
+                navigator.serviceWorker.addEventListener('controllerchange', function() {
+                  if (refreshing) return;
+                  refreshing = true;
+                  window.location.reload();
+                });
+              });
+            }
+          `
+        }} />
       </head>
       <body className="bg-background text-foreground antialiased pb-20 select-none">
         <Suspense fallback={<div className="flex items-center justify-center min-h-screen text-muted-foreground">Loading...</div>}>
@@ -64,7 +97,7 @@ function BottomNav() {
   const navItems = [
     { label: "行程", icon: Calendar, path: "/" },
     { label: "記帳", icon: CreditCard, path: "/accounting" },
-    // { label: "購物", icon: ShoppingBag, path: "/shopping" },
+    { label: "購物", icon: ShoppingBag, path: "/shopping" },
     { label: "資訊", icon: Info, path: "/info" },
   ];
 
