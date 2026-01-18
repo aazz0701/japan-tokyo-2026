@@ -8,15 +8,19 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
-import { addDoc, collection, Timestamp } from "firebase/firestore";
+import { addDoc, collection, Timestamp, updateDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
+import { Expense } from "@/lib/expenses";
 
 interface ExpenseFormProps {
     currentUser: UserName | null;
+    initialData?: Expense;
+    mode?: 'add' | 'edit';
+    onClose?: () => void;
 }
 
-export function ExpenseForm({ currentUser }: ExpenseFormProps) {
+export function ExpenseForm({ currentUser, initialData, mode = 'add', onClose }: ExpenseFormProps) {
     const [open, setOpen] = useState(false);
     const [amount, setAmount] = useState("");
     const [currency, setCurrency] = useState<"JPY" | "TWD">("JPY");
@@ -32,18 +36,32 @@ export function ExpenseForm({ currentUser }: ExpenseFormProps) {
     const rateVal = parseFloat(exchangeRate) || 0;
     const totalTWD = currency === "TWD" ? amountVal : Math.round(amountVal * rateVal);
 
+    // Pre-fill form when editing
     useEffect(() => {
-        if (open && currentUser) {
+        if (initialData && mode === 'edit') {
+            setAmount(initialData.amount.toString());
+            setCurrency(initialData.currency);
+            setExchangeRate(initialData.exchangeRate.toString());
+            setCategory(initialData.category as ExpenseCategory);
+            setDescription(initialData.description);
+            setPayer(initialData.payer);
+            setSharedBy(initialData.sharedBy);
+            setOpen(true);
+        }
+    }, [initialData, mode]);
+
+    useEffect(() => {
+        if (open && currentUser && mode === 'add') {
             setPayer(currentUser);
         }
-    }, [open, currentUser]);
+    }, [open, currentUser, mode]);
 
     const handleSubmit = async () => {
         if (!amount || isSubmitting) return;
 
         setIsSubmitting(true);
         try {
-            await addDoc(collection(db, "expenses"), {
+            const expenseData = {
                 amount: amountVal,
                 currency,
                 exchangeRate: rateVal,
@@ -52,18 +70,29 @@ export function ExpenseForm({ currentUser }: ExpenseFormProps) {
                 description,
                 payer,
                 sharedBy,
-                date: Timestamp.now(),
-                createdAt: Timestamp.now(),
-            });
+                date: initialData?.date || Timestamp.now(),
+                createdAt: initialData?.createdAt || Timestamp.now(),
+            };
+
+            if (mode === 'edit' && initialData?.id) {
+                // Update existing expense
+                await updateDoc(doc(db, "expenses", initialData.id), expenseData);
+            } else {
+                // Add new expense
+                await addDoc(collection(db, "expenses"), expenseData);
+            }
 
             setOpen(false);
+            onClose?.();
             // Reset form
-            setAmount("");
-            setDescription("");
-            setSharedBy([...USERS]);
+            if (mode === 'add') {
+                setAmount("");
+                setDescription("");
+                setSharedBy([...USERS]);
+            }
         } catch (e) {
-            console.error("Error adding expense:", e);
-            alert("新增失敗，請檢查網路");
+            console.error("Error saving expense:", e);
+            alert(mode === 'edit' ? "更新失敗，請檢查網路" : "新增失敗，請檢查網路");
         } finally {
             setIsSubmitting(false);
         }
@@ -78,15 +107,22 @@ export function ExpenseForm({ currentUser }: ExpenseFormProps) {
     };
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button className="fixed bottom-20 right-4 rounded-full w-14 h-14 shadow-lg shadow-primary/40 p-0 z-40 bg-primary hover:bg-primary/90">
-                    <Plus className="w-8 h-8 text-white" />
-                </Button>
-            </DialogTrigger>
+        <Dialog open={open} onOpenChange={(newOpen) => {
+            setOpen(newOpen);
+            if (!newOpen) {
+                onClose?.();
+            }
+        }}>
+            {mode === 'add' && (
+                <DialogTrigger asChild>
+                    <Button className="fixed bottom-20 right-4 rounded-full w-14 h-14 shadow-lg shadow-primary/40 p-0 z-40 bg-primary hover:bg-primary/90">
+                        <Plus className="w-8 h-8 text-white" />
+                    </Button>
+                </DialogTrigger>
+            )}
             <DialogContent className="max-w-md bg-card border-border text-foreground max-h-[90vh] overflow-y-auto w-[95%] rounded-xl">
                 <DialogHeader>
-                    <DialogTitle>新增支出</DialogTitle>
+                    <DialogTitle>{mode === 'edit' ? '編輯支出' : '新增支出'}</DialogTitle>
                 </DialogHeader>
 
                 <div className="grid gap-4 py-2">
@@ -217,7 +253,7 @@ export function ExpenseForm({ currentUser }: ExpenseFormProps) {
 
                 <DialogFooter className="mt-2">
                     <Button onClick={handleSubmit} disabled={!amount || isSubmitting} className="w-full h-12 text-lg font-bold text-white">
-                        新增支出
+                        {mode === 'edit' ? '更新支出' : '新增支出'}
                     </Button>
                 </DialogFooter>
             </DialogContent>

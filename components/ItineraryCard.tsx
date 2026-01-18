@@ -46,9 +46,9 @@ interface ItineraryCardProps {
 }
 
 // Helper to determine styling based on category
-const getCategoryStyles = (category?: string, activity: string = "") => {
+const getCategoryStyles = (category?: string) => {
     // Detect implicit categories if not set
-    let effectiveCategory = category;
+    const effectiveCategory = category;
 
     // Colors adjusted for better visibility in both Light and Dark modes
     switch (effectiveCategory) {
@@ -116,7 +116,7 @@ const getCategoryStyles = (category?: string, activity: string = "") => {
 };
 
 export function ItineraryCard({ item, dayId, index, isLast, onEdit, onDelete }: ItineraryCardProps) {
-    const styles = getCategoryStyles(item.category, item.activity);
+    const styles = getCategoryStyles(item.category);
     const Icon = styles.icon;
 
     // Construct detail URL

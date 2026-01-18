@@ -1,7 +1,6 @@
 "use client";
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUser } from "@/components/UserProvider";
 
 export type ItineraryVersion = 'main' | 'group2';
 
@@ -33,8 +32,6 @@ interface ItineraryVersionSwitcherProps {
 }
 
 export function ItineraryVersionSwitcher({ value, onChange }: ItineraryVersionSwitcherProps) {
-    const { theme } = useUser();
-
     const currentVersion = ITINERARY_VERSIONS.find(v => v.id === value) || ITINERARY_VERSIONS[0];
 
     return (

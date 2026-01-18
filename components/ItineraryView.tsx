@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Settings, Moon, Sun } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
     AlertDialog,
@@ -245,20 +245,6 @@ export function ItineraryView() {
             console.error("Error reordering items:", error);
             // Revert on error (optional, simplified here)
             alert("排序更新失敗");
-        }
-    };
-
-    const handleCopyAddress = (address: string) => {
-        navigator.clipboard.writeText(address);
-        alert("地址已複製");
-    };
-
-    const handleOpenMap = (url?: string, address?: string) => {
-        if (url) {
-            window.open(url, "_blank");
-        } else if (address) {
-            const query = encodeURIComponent(address);
-            window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, "_blank");
         }
     };
 

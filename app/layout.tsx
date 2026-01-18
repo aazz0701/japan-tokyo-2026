@@ -97,7 +97,7 @@ function BottomNav() {
   const navItems = [
     { label: "行程", icon: Calendar, path: "/" },
     { label: "記帳", icon: CreditCard, path: "/accounting" },
-    { label: "購物", icon: ShoppingBag, path: "/shopping" },
+    // { label: "購物", icon: ShoppingBag, path: "/shopping" },
     { label: "資訊", icon: Info, path: "/info" },
   ];
 
