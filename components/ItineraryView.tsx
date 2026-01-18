@@ -48,6 +48,7 @@ import {
 import { SortableItineraryCard } from './SortableItineraryCard';
 import { AccommodationForm } from './AccommodationForm';
 import { ItineraryVersionSwitcher, ItineraryVersion, ITINERARY_VERSIONS } from './ItineraryVersionSwitcher';
+import { useSwipeable } from 'react-swipeable';
 
 interface Accommodation {
     name: string;
@@ -300,6 +301,23 @@ export function ItineraryView() {
         return () => unsubscribe();
     }, [currentCollection, selectedVersion]);
 
+    const handlers = useSwipeable({
+        onSwipedLeft: () => {
+            const currentIndex = days.findIndex(d => d.id === activeTab);
+            if (currentIndex !== -1 && currentIndex < days.length - 1) {
+                handleTabChange(days[currentIndex + 1].id);
+            }
+        },
+        onSwipedRight: () => {
+            const currentIndex = days.findIndex(d => d.id === activeTab);
+            if (currentIndex !== -1 && currentIndex > 0) {
+                handleTabChange(days[currentIndex - 1].id);
+            }
+        },
+        preventScrollOnSwipe: false,
+        trackMouse: false
+    });
+
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center p-8 space-y-4 animate-pulse">
@@ -372,7 +390,7 @@ export function ItineraryView() {
                 </div>
 
                 {/* Content Area */}
-                <div className="px-4 py-4 min-h-[50vh]">
+                <div {...handlers} className="px-4 py-4 min-h-[50vh]">
                     {days.map((day) => (
                         <TabsContent key={day.id} value={day.id} className="mt-0 focus-visible:ring-0">
                             {/* Daily Header Summary or Weather */}
