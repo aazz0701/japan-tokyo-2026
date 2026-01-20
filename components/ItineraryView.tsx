@@ -102,12 +102,7 @@ export function ItineraryView() {
                 distance: 8,
             },
         }),
-        useSensor(TouchSensor, {
-            activationConstraint: {
-                delay: 2000,
-                tolerance: 8,
-            },
-        }),
+        useSensor(TouchSensor),
         useSensor(KeyboardSensor, {
             coordinateGetter: sortableKeyboardCoordinates,
         })
@@ -390,7 +385,7 @@ export function ItineraryView() {
                 </div>
 
                 {/* Content Area */}
-                <div {...handlers} className="px-4 py-4 min-h-[50vh]">
+                <div {...handlers} className="px-4 py-4 min-h-[50vh] touch-pan-y">
                     {days.map((day) => (
                         <TabsContent key={day.id} value={day.id} className="mt-0 focus-visible:ring-0">
                             {/* Daily Header Summary or Weather */}
