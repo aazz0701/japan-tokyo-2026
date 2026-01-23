@@ -45,7 +45,7 @@ export function SortableItineraryCard({
 
     if (!isEditMode) {
         return (
-            <div className="relative mb-6 pb-0">
+            <div id={`card-${item.id}`} className="relative mb-6 pb-0">
                 <ItineraryCard
                     item={item}
                     dayId={dayId}
@@ -60,7 +60,7 @@ export function SortableItineraryCard({
 
     return (
 
-        <div ref={setNodeRef} style={style} {...attributes} className="relative mb-6 pb-0 group">
+        <div id={`card-${item.id}`} ref={setNodeRef} style={style} {...attributes} className="relative mb-6 pb-0 group">
             <ItineraryCard
                 item={item}
                 dayId={dayId}

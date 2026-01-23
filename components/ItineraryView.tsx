@@ -291,6 +291,103 @@ export function ItineraryView() {
 
             setDays(fetchedDays);
             setLoading(false);
+
+            // AUTO-NAVIGATION LOGIC
+            // Check if we haven't auto-navigated yet and no specific tab is requested in URL (initial load)
+            const hasTabParam = searchParams.get('tab');
+            if (!hasTabParam && fetchedDays.length > 0) {
+                const now = new Date();
+                const todayStr = format(now, "yyyy/M/d"); // Match Firebase date format: 2026/1/24
+
+                const todayDay = fetchedDays.find(d => d.date === todayStr);
+
+                if (todayDay) {
+                    // 1. Switch Tab
+                    setActiveTab(todayDay.id);
+                    // Also update URL silently
+                    const params = new URLSearchParams(searchParams);
+                    params.set('tab', todayDay.id);
+                    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+
+                    // 2. Scroll to current time (delayed to allow render)
+                    setTimeout(() => {
+                        const currentHour = now.getHours();
+                        const currentMinute = now.getMinutes();
+                        const currentTimeVal = currentHour * 60 + currentMinute;
+
+                        let targetItemId: string | null = null;
+                        let minDiff = Infinity;
+
+                        // Find the item closest to now but not too far in the past
+                        // Or just find the first item that starts after now, or is currently happening
+                        for (const item of todayDay.items) {
+                            if (!item.startTime || !item.id) continue;
+
+                            const [h, m] = item.startTime.split(':').map(Number);
+                            const itemTimeVal = h * 60 + m;
+
+                            // Check if item is current or upcoming
+                            // "Current" means startTime <= now. "Upcoming" means startTime > now.
+                            // We probably want the item that is "happening now" or "next up"
+
+                            // Simple logic: Find first item where endTime > now (if available) OR startTime is closest
+                            // Let's stick to finding the ONE item that is "next" or "current"
+
+                            // Calculate difference
+                            const diff = itemTimeVal - currentTimeVal;
+
+                            // If diff is negative, it started in the past. 
+                            // If we have duration, we can check if it's still ongoing.
+                            // For now, let's just find the item with the smallest absolute difference?
+                            // No, we want the "current active" item.
+
+                            // Strategy: Find the *last* item that started <= now, OR the *first* item > now if none started yet.
+
+                            // Better Strategy for UX: Scroll to the item that is happening NOW.
+                            // If item.startTime <= now, it's a candidate.
+                            // We want the LATEST item that is <= now.
+
+                            // Let's try: Find the first item that starts AFTER now. Then pick the one BEFORE it.
+                            // If all are before now, pick the last one.
+                            // If all are after now, pick the first one.
+                        }
+
+                        // Revised Strategy:
+                        // Find the first item whose startTime is AFTER (current time - 15 mins buffer).
+                        // This shows the user what is just about to happen or just happened.
+                        const bufferTime = currentTimeVal - 30; // Show items starting from 30 mins ago
+
+                        const upcomingOrCurrentParams = todayDay.items
+                            .filter(i => i.startTime)
+                            .map(i => {
+                                const [h, m] = i.startTime!.split(':').map(Number);
+                                return { ...i, timeVal: h * 60 + m };
+                            })
+                            .sort((a, b) => a.timeVal - b.timeVal);
+
+                        const targetItem = upcomingOrCurrentParams.find(i => i.timeVal >= bufferTime);
+
+                        if (targetItem && targetItem.id) {
+                            const el = document.getElementById(`card-${targetItem.id}`);
+                            if (el) {
+                                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }
+                        } else if (upcomingOrCurrentParams.length > 0) {
+                            // If all items are in the past (late night), maybe scroll to the last one?
+                            // Or just don't scroll.
+                            // Let's scroll to the last item if it's late
+                            const lastItem = upcomingOrCurrentParams[upcomingOrCurrentParams.length - 1];
+                            if (lastItem && lastItem.id) {
+                                const el = document.getElementById(`card-${lastItem.id}`);
+                                if (el) {
+                                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                            }
+                        }
+
+                    }, 500); // 500ms delay to ensure DOM is ready
+                }
+            }
         });
 
         return () => unsubscribe();
