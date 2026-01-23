@@ -8,7 +8,7 @@ import { ItineraryItem } from "./ItineraryCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-import { ArrowLeft, MoreHorizontal, Clock, MapPin, Navigation, ExternalLink, Globe, Train, Footprints, Bus } from "lucide-react";
+import { ArrowLeft, Clock, MapPin, Navigation, ExternalLink, Globe, Train, Footprints, Bus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "./UserProvider";
@@ -83,25 +83,17 @@ export function ItineraryDetailView() {
     return (
         <div className="min-h-screen bg-background pb-24 relative animate-in fade-in duration-300">
             {/* 1. Toolbar */}
-            <div className="absolute top-0 left-0 right-0 z-50 p-4 pt-12 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent pointer-events-none">
+            <div className="absolute top-0 left-0 right-0 z-50 p-4 pt-12 flex items-center justify-center bg-gradient-to-b from-black/60 to-transparent pointer-events-none">
                 <Button
                     variant="secondary"
                     size="icon"
-                    className="h-10 w-10 rounded-full bg-background/20 backdrop-blur-md border border-white/10 text-white hover:bg-background/40 pointer-events-auto"
+                    className="absolute left-4 h-10 w-10 rounded-full bg-background/20 backdrop-blur-md border border-white/10 text-white hover:bg-background/40 pointer-events-auto"
                     onClick={() => router.back()}
                 >
                     <ArrowLeft className="w-5 h-5" />
                 </Button>
 
-                <h1 className="text-white font-bold text-shadow pointer-events-auto">{dayId}: {item.activity}</h1>
-
-                <Button
-                    variant="secondary"
-                    size="icon"
-                    className="h-10 w-10 rounded-full bg-background/20 backdrop-blur-md border border-white/10 text-white hover:bg-background/40 pointer-events-auto"
-                >
-                    <MoreHorizontal className="w-5 h-5" />
-                </Button>
+                <h1 className="text-white font-bold text-shadow pointer-events-auto text-lg line-clamp-1 px-12">{dayId}: {item.activity}</h1>
             </div>
 
             {/* 2. Hero Image - 只在有圖片時顯示 */}

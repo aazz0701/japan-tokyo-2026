@@ -102,9 +102,17 @@ function BottomNav() {
   ];
 
   const handleNav = (path: string) => {
-    // Preserve query params (user)
-    const params = searchParams.toString();
-    const target = params ? `${path}?${params}` : path;
+    // Preserve ONLY specific query params (user, version)
+    const newParams = new URLSearchParams();
+
+    const userParam = searchParams.get("user");
+    if (userParam) newParams.set("user", userParam);
+
+    const versionParam = searchParams.get("version");
+    if (versionParam) newParams.set("version", versionParam);
+
+    const queryString = newParams.toString();
+    const target = queryString ? `${path}?${queryString}` : path;
     router.push(target);
   };
 

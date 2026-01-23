@@ -317,42 +317,7 @@ export function ItineraryView() {
                         const currentMinute = now.getMinutes();
                         const currentTimeVal = currentHour * 60 + currentMinute;
 
-                        let targetItemId: string | null = null;
-                        let minDiff = Infinity;
 
-                        // Find the item closest to now but not too far in the past
-                        // Or just find the first item that starts after now, or is currently happening
-                        for (const item of todayDay.items) {
-                            if (!item.startTime || !item.id) continue;
-
-                            const [h, m] = item.startTime.split(':').map(Number);
-                            const itemTimeVal = h * 60 + m;
-
-                            // Check if item is current or upcoming
-                            // "Current" means startTime <= now. "Upcoming" means startTime > now.
-                            // We probably want the item that is "happening now" or "next up"
-
-                            // Simple logic: Find first item where endTime > now (if available) OR startTime is closest
-                            // Let's stick to finding the ONE item that is "next" or "current"
-
-                            // Calculate difference
-                            const diff = itemTimeVal - currentTimeVal;
-
-                            // If diff is negative, it started in the past. 
-                            // If we have duration, we can check if it's still ongoing.
-                            // For now, let's just find the item with the smallest absolute difference?
-                            // No, we want the "current active" item.
-
-                            // Strategy: Find the *last* item that started <= now, OR the *first* item > now if none started yet.
-
-                            // Better Strategy for UX: Scroll to the item that is happening NOW.
-                            // If item.startTime <= now, it's a candidate.
-                            // We want the LATEST item that is <= now.
-
-                            // Let's try: Find the first item that starts AFTER now. Then pick the one BEFORE it.
-                            // If all are before now, pick the last one.
-                            // If all are after now, pick the first one.
-                        }
 
                         // Revised Strategy:
                         // Find the first item whose startTime is AFTER (current time - 15 mins buffer).
@@ -396,13 +361,19 @@ export function ItineraryView() {
     }, [currentCollection, selectedVersion]);
 
     const handlers = useSwipeable({
-        onSwipedLeft: () => {
+        onSwipedLeft: (eventData) => {
+            const target = eventData.event.target as HTMLElement;
+            if (target.closest('.no-swipe')) return;
+
             const currentIndex = days.findIndex(d => d.id === activeTab);
             if (currentIndex !== -1 && currentIndex < days.length - 1) {
                 handleTabChange(days[currentIndex + 1].id);
             }
         },
-        onSwipedRight: () => {
+        onSwipedRight: (eventData) => {
+            const target = eventData.event.target as HTMLElement;
+            if (target.closest('.no-swipe')) return;
+
             const currentIndex = days.findIndex(d => d.id === activeTab);
             if (currentIndex !== -1 && currentIndex > 0) {
                 handleTabChange(days[currentIndex - 1].id);
@@ -545,9 +516,11 @@ export function ItineraryView() {
 
                             {/* Hourly Weather Forecast Block */}
                             {day.accommodation?.coords && (
-                                <WeatherForecast
-                                    coords={day.accommodation.coords}
-                                />
+                                <div className="no-swipe">
+                                    <WeatherForecast
+                                        coords={day.accommodation.coords}
+                                    />
+                                </div>
                             )}
 
                             <div className="">
