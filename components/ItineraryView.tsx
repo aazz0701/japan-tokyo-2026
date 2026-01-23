@@ -14,7 +14,7 @@ import { fetchTripWeather, getWeatherIconLabel, WeatherData } from "@/lib/weathe
 import { ItineraryItemForm } from "./ItineraryItemForm";
 import { WeatherForecast } from "./WeatherForecast";
 import { Button } from "@/components/ui/button";
-import { Plus, Settings, Moon, Sun } from "lucide-react";
+import { Plus, Settings, Moon, Sun, CircleAlert } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -67,6 +67,7 @@ interface DayData {
     date: string; // 2026/1/24
     items: ItineraryItem[];
     accommodation?: Accommodation;
+    referenceInfo?: string;
 }
 
 export function ItineraryView() {
@@ -90,6 +91,7 @@ export function ItineraryView() {
     const [itemToDelete, setItemToDelete] = useState<number | null>(null);
     const [selectedAccommodation, setSelectedAccommodation] = useState<Accommodation | null>(null);
     const [editingAccommodation, setEditingAccommodation] = useState<{ accommodation: Accommodation, dayId: string } | null>(null);
+    const [viewingReferenceInfo, setViewingReferenceInfo] = useState<string | null>(null);
     const { theme, toggleTheme, isAdmin, isEditMode, toggleEditMode } = useUser();
 
     // Get current collection name based on selected version
@@ -497,6 +499,17 @@ export function ItineraryView() {
                                 </div>
 
                                 <div className="flex gap-3 items-end">
+                                    {/* Reference Info Button - Data Verified */}
+                                    {day.referenceInfo && (
+                                        <button
+                                            onClick={() => setViewingReferenceInfo(day.referenceInfo!)}
+                                            className="flex items-center justify-center p-1.5 rounded-full text-foreground/80 hover:text-primary transition-all bg-card/50 hover:bg-card border border-border/50 shadow-sm mb-0.5"
+                                            title="參考資料"
+                                        >
+                                            <CircleAlert className="w-4 h-4" />
+                                        </button>
+                                    )}
+
                                     {/* Accommodation Button */}
                                     {day.accommodation && (
                                         <button
@@ -582,7 +595,6 @@ export function ItineraryView() {
                 </div>
             )}
 
-            {/* Settings Dialog */}
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
                 <DialogContent className="sm:max-w-[425px] bg-[#1a1a1a] text-white border-white/10">
                     <DialogHeader>
@@ -616,6 +628,23 @@ export function ItineraryView() {
                             </p>
                         </div>
                     </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Reference Info Dialog */}
+            <Dialog open={!!viewingReferenceInfo} onOpenChange={(open) => !open && setViewingReferenceInfo(null)}>
+                <DialogContent className="sm:max-w-[500px] bg-background/95 backdrop-blur text-foreground border-border">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <CircleAlert className="w-5 h-5 text-primary" />
+                            參考資料
+                        </DialogTitle>
+                    </DialogHeader>
+                    <ScrollArea className="max-h-[60vh] mt-2">
+                        <div className="whitespace-pre-wrap text-sm leading-relaxed p-1">
+                            {viewingReferenceInfo}
+                        </div>
+                    </ScrollArea>
                 </DialogContent>
             </Dialog>
 
